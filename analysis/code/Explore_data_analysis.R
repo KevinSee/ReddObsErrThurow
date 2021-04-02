@@ -18,7 +18,7 @@ library(GGally)
 theme_set(theme_bw())
 #----------------------------------------------------------------
 # read in data
-raw_data = read_csv('Data/reach_data.csv') %>%
+raw_data = read_csv('analysis/data/raw_data/reach_data.csv') %>%
   mutate_each(funs(as.factor(.)), Year, Reach, Survey, Surveyor, ExperienceCat) %>%
   mutate(ExperienceCat = ordered(ExperienceCat, levels = c('B', 'A', 'C')),
          Experience3 = ordered(Experience3)) %>%
@@ -115,18 +115,18 @@ ggplot(raw_data,
        aes(x = TrueReachCt / Km,
            y = CommisRate)) +
   geom_point() +
-  geom_smooth(method = lm) + 
-  geom_smooth(method = lm, 
+  geom_smooth(method = lm) +
+  geom_smooth(method = lm,
               formula = y ~ exp(-x),
               color = 'red',
-              fill = 'pink') + 
+              fill = 'pink') +
   facet_wrap(~ Survey)
 
 ggplot(raw_data,
        aes(x = TrueReachCt / Km,
            y = OmisRate)) +
   geom_point() +
-  geom_smooth(method = lm) + 
+  geom_smooth(method = lm) +
   facet_wrap(~ Survey)
 
 

@@ -15,7 +15,7 @@ theme_set(theme_bw())
 
 #----------------------------------------------------------------
 # read in data
-raw_data = read_csv('data/reach_data.csv') %>%
+raw_data = read_csv('analysis/data/raw_data/reach_data.csv') %>%
   select(-X1) %>%
   mutate(id = 1:n()) %>%
   select(Year, Reach, Survey, id, everything()) %>%
@@ -39,11 +39,11 @@ raw_data = read_csv('data/reach_data.csv') %>%
 # Ground surveys
 #----------------------------------------------------------------
 # pull in possible model covariates
-all_mod_specs = read_csv('data/V_A1_specifications.csv') %>%
+all_mod_specs = read_csv('analysis/data/raw_data/V_A1_specifications.csv') %>%
   mutate(Resp = 'Omi') %>%
-  bind_rows(read_csv('data/V_A2_specifications.csv') %>%
+  bind_rows(read_csv('analysis/data/raw_data/V_A2_specifications.csv') %>%
               mutate(Resp = 'Com')) %>%
-  bind_rows(read_csv('data/V_A3_specifications.csv') %>%
+  bind_rows(read_csv('analysis/data/raw_data/V_A3_specifications.csv') %>%
               mutate(Resp = 'Net')) %>%
   select(EffectType, Resp, VarName, matches('^M')) %>%
   gather(Model, Incl, -(EffectType:VarName)) %>%
@@ -53,11 +53,11 @@ all_mod_specs = read_csv('data/V_A1_specifications.csv') %>%
                           'ExperienceCat' = 'Experience3')) %>%
   filter(!is.na(Incl)) %>%
   mutate(Survey = 'Air') %>%
-  bind_rows(read_csv('data/V_G2_specifications.csv') %>%
+  bind_rows(read_csv('analysis/data/raw_data/V_G2_specifications.csv') %>%
               mutate(Resp = 'Omi') %>%
-              bind_rows(read_csv('data/V_G3_specifications.csv') %>%
+              bind_rows(read_csv('analysis/data/raw_data/V_G3_specifications.csv') %>%
                           mutate(Resp = 'Com')) %>%
-              bind_rows(read_csv('data/V_G4_specifications.csv') %>%
+              bind_rows(read_csv('analysis/data/raw_data/V_G4_specifications.csv') %>%
                           mutate(Resp = 'Net')) %>%
               select(EffectType, Resp, VarName, matches('^M')) %>%
               gather(Model, Incl, -(EffectType:VarName)) %>%
@@ -155,7 +155,7 @@ mod_fits = all_mod_specs %>%
                              filter(EffectType == 'Random') %>%
                              nrow()
                          })) %>%
-  mutate(mod_form = map2(Resp, 
+  mutate(mod_form = map2(Resp,
                          covars,
                          .f = function(x, y) {
                            resp = if_else(x == 'Com',
@@ -163,34 +163,34 @@ mod_fits = all_mod_specs %>%
                                           if_else(x == "Omi",
                                                   "cbind(TrueReachCt - redd_correct, redd_correct)",
                                                   "NetError"))
-                           
+
                            fix_eff = y %>%
                              filter(EffectType == 'Fixed') %>%
                              pull(VarName) %>%
                              paste(collapse = ' + ')
-                           
+
                            rand_eff = y %>%
                              filter(EffectType == 'Random') %>%
                              mutate(var_form = paste("(1 |", VarName, ")")) %>%
                              pull(var_form) %>%
                              paste(collapse = ' + ')
-                           
-                           
+
+
                            mod_form = if_else(fix_eff == "",
                                               paste(resp, "~ +", rand_eff),
                                               paste(resp, "~ +", rand_eff, "+", fix_eff)) %>%
                              as.formula()
-                           
+
                            return(mod_form)
                          })) %>%
   left_join(mod_data %>%
               group_by(Survey) %>%
               nest()) %>%
-  mutate(fit = map2(mod_form, 
+  mutate(fit = map2(mod_form,
                     data,
                     .f = function(x, y) {
                       if(grepl("NetError", all.vars(x)[1])) {
-                        # mod = try(lmer(x, 
+                        # mod = try(lmer(x,
                         #                data = y))
                         mod = try(glmer(x,
                                         data = y,
@@ -203,13 +203,13 @@ mod_fits = all_mod_specs %>%
 
                       return(mod)
                     })) %>%
-  mutate(AICc = map_dbl(fit, 
+  mutate(AICc = map_dbl(fit,
                         .f = AICc)) %>%
   mutate(r2 = map2(mod_form,
                    data,
                    .f = function(x, y) {
                      if(grepl("NetError", all.vars(x)[1])) {
-                       # mod = try(lmer(x, 
+                       # mod = try(lmer(x,
                        #                data = y))
                        mod = try(glmer(x,
                                        data = y,
@@ -219,10 +219,10 @@ mod_fits = all_mod_specs %>%
                                        data = y,
                                        family = "binomial"))
                      }
-                     
+
                      r2_df = r.squaredGLMM(mod)
                      if(is.null(rownames(r2_df))) rownames(r2_df) = c('delta')
-                     
+
                      r2_df %>%
                        as_tibble(rownames = 'type') %>%
                        filter(type == 'delta') %>%
@@ -290,7 +290,7 @@ mod_sel = mod_fits %>%
 #   # group_by(Survey, Year, Surveyor) %>%
 #   nest() %>%
 #   rename(loocv = data) %>%
-#   mutate(loocv = map2(loocv, 
+#   mutate(loocv = map2(loocv,
 #                       Year,
 #                       .f = function(x, y) {
 #                         x %>%
@@ -310,15 +310,15 @@ mod_sel = mod_fits %>%
 #                                 .f = formula)) %>%
 #               select(-model) %>%
 #               rename(mod_type = type)) %>%
-#   mutate(fit = map2(form, 
+#   mutate(fit = map2(form,
 #                     data,
 #                     .f = function(x, y) {
 #                       fam = if_else(all.vars(x)[1] == 'log_NetError',
 #                                     "gaussian",
 #                                     "binomial")
-#                       
+#
 #                       if(fam == 'gaussian') {
-#                         mod = try(lmer(x, 
+#                         mod = try(lmer(x,
 #                                        data = y))
 #                       }else{
 #                         mod = try(glmer(x,
@@ -334,7 +334,7 @@ mod_sel = mod_fits %>%
 #                                             if_else(y == 'Omi',
 #                                                     "OmisRate",
 #                                                     "log_NetError"))
-#                            
+#
 #                            x %>%
 #                              pull(col_nm) %>%
 #                              return()
@@ -381,15 +381,15 @@ loocv_df = mod_data %>%
                                 .f = formula)) %>%
               select(-model) %>%
               rename(mod_type = type)) %>%
-  mutate(fit = map2(form, 
+  mutate(fit = map2(form,
                     data,
                     .f = function(x, y) {
                       fam = if_else(grepl("NetError", all.vars(x)[1]),
                                     "gaussian",
                                     "binomial")
-                      
+
                       if(fam == 'gaussian') {
-                        # mod = try(lmer(x, 
+                        # mod = try(lmer(x,
                         #                data = y))
                         mod = try(glmer(x,
                                         data = y,
@@ -408,7 +408,7 @@ loocv_df = mod_data %>%
                                             if_else(y == 'Omi',
                                                     "OmisRate",
                                                     "NetError"))
-                           
+
                            x %>%
                              pull(col_nm) %>%
                              return()
@@ -427,11 +427,11 @@ loocv_df = mod_data %>%
 #----------------------------------------------------------------
 # save some stuff
 #----------------------------------------------------------------
-save(raw_data, 
+save(raw_data,
      mod_data,
      all_mod_specs,
      covar_center,
-     mod_fits, 
+     mod_fits,
      mod_sel,
      n_folds,
      loocv_df,

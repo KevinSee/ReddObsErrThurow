@@ -21,7 +21,7 @@ theme_update(panel.grid = element_blank(),
 
 #----------------------------------------------------------------
 # load data and model results
-load('analysis/modelResults/fits_validation.rda')
+load('analysis/code/modelResults/fits_validation.rda')
 
 mod_fits
 mod_sel
@@ -58,8 +58,8 @@ pred_df = covar_center %>%
   nest() %>%
   mutate(pred_seq = map(data,
                         .f = function(x) {
-                          tibble(value = seq(x$min, 
-                                             x$max, 
+                          tibble(value = seq(x$min,
+                                             x$max,
                                              length.out = 200))
                         })) %>%
   select(-data) %>%
@@ -78,7 +78,7 @@ pred_df = covar_center %>%
                                value_z,
                                covar_value)) %>%
   spread(covar, covar_value) %>%
-  mutate(pred = predict(mod, 
+  mutate(pred = predict(mod,
                           newdata = .,
                           re.form = ~ 0,
                           type = 'response'))
@@ -175,8 +175,8 @@ pred_df = covar_center %>%
   nest() %>%
   mutate(pred_seq = map(data,
                         .f = function(x) {
-                          tibble(value = seq(x$min, 
-                                             x$max, 
+                          tibble(value = seq(x$min,
+                                             x$max,
                                              length.out = 200))
                         })) %>%
   select(-data) %>%
@@ -206,7 +206,7 @@ pred_df = covar_center %>%
                      covar_value = value) %>%
               spread(covar, covar_value) %>%
               select(-value)) %>%
-  mutate(pred = predict(mod, 
+  mutate(pred = predict(mod,
                         newdata = .,
                         re.form = ~ 0,
                         type = 'response'))
@@ -302,7 +302,7 @@ mod_data %>%
   geom_boxplot()
 
 
-pdf('figures/validation/Covariate_Effects_Grnd.pdf',
+pdf('analysis/figures/validation/Covariate_Effects_Grnd.pdf',
     width = 5,
     height = 5)
 for(i in 1:length(grnd_list)) {
@@ -311,7 +311,7 @@ for(i in 1:length(grnd_list)) {
 dev.off()
 
 for(i in 1:length(grnd_list)) {
-  ggsave(paste0('figures/validation/Covariate_Effects_Grnd_', i, '.png'),
+  ggsave(paste0('analysis/figures/validation/Covariate_Effects_Grnd_', i, '.png'),
          plot = grnd_list[[i]],
          width = 5,
          height = 5)

@@ -23,7 +23,7 @@ output:
     fig_width: 8
     toc: true
     toc_depth: 3
-csl: templates/american-fisheries-society.csl
+csl: "../templates/canadian-journal-of-fisheries-and-aquatic-sciences.csl" # Insert path for the bib-style
 bibliography: references.bib
 ---
 
@@ -178,7 +178,7 @@ theme_update(panel.grid = element_blank())
 
 #----------------------------------------------------------------
 # load data and model fits
-load('modelResults/fits_sightability.rda')
+load('../code/modelResults/fits_sightability.rda')
 
 # relative importance of each variable
 rel_imp_df = mod_fits %>%
