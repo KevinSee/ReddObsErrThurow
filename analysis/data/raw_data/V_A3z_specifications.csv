@@ -1,0 +1,23 @@
+VarCategory,VarDescription,VarName,Note,EffectType,M1,M2,M3,M4,M5,M6,M7,M8,M9,M10,M11,M12,M18,M19,M20
+,Surveyor,Surveyor,,Random,,,,,,,,,,,,,,,
+,Year ,Year,,Random,,,,,,,,,,,,,,,1
+,Reach,Reach,,Random,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+Environment,Stream width,z.sc(AveWidth),,Fixed,1,1,1,,,,,,,,,,,,
+Environment,Stream depth,z.sc(AveDepth),,Fixed,1,1,1,,,,,,,,,,,,
+Environment,Reach gradient,z.sc(Slope),,Fixed,1,1,1,,,,,,,,,,,,
+Environment,Overhead canopy cover,z.sc(AveCanopy),,Fixed,1,,,,,1,,,,,,,,,
+Environment,Current year peak flow at MF gauge,z.sc(PeakQ),Confounded w Year,Fixed,1,,,,1,,,,,,,,,,
+Environment,Density of “others”,z.sc(OthrDens),,Fixed,1,,,1,,,,,,,,,,,
+Environment,Last year’s aerial count,z.sc(LYabund),Confounded w Year,Fixed,1,,,,1,,,,,,,,,,
+Environment,Percent of redds in the sun (air only),z.sc(AveSunny),,Fixed,1,,,,,,,,,,,,,1,
+Surveyor,Experience level (ground only),ExperienceCat,,Fixed,,,,,,,,,,,,,,,
+Redd,Contrast with substrate,z.sc(AveContrast),,Fixed,1,,,,,,,,,,1,1,,,
+Redd,Avg nearest neighbor distance,z.sc(ANNDist),,Fixed,,,,,,,,,,,,,,,
+Redd,Density of redds (current year),z.sc(redd_dens),,Fixed,1,,,,,,1,1,,,,,,,
+Redd,Overlap with other redds,z.sc(AveOverlap),,Fixed,1,,,,,,1,,,1,,1,,,
+Redd,Age,z.sc(AveAge),,Fixed,1,,,,,,,,,,,1,,,
+Interaction,Last year's redds (aerial count) visible,z.sc(LYabund)*z.sc(PeakQ)," Confounded w Year, Always include interaction b/c that's where we believe true effect is.",Fixed,1,,,,1,,,,,,,,,,
+Environment,Poor survey conditions (air only),AveBadCond,If there is an effect here consider removing records from dataset where AveBadCond=yes,Fixed,1,,,,,,,,,,,,1,,
+Redd,IDFG Escapement Estimate for MFSR ,z.sc(EscapeEst),Confounded w Year. EscapeEst as surrogate for redd_density when density and clustering of true redds unknown,Fixed,,,,,,,,,,,,,,,
+Environment,Log transformed ANNDist,z.sc(log(ANNDist)),Use log because range is very large.,Fixed,1,,,,,,1,,1,,,,,,
+Environment,Stream depth x^2,z.sc(AveDepth)*z.sc(AveDepth),"Expect threshold effect - at certain depth, omissions increase dramatically",Fixed,1,1,,,,,,,,,,,,,

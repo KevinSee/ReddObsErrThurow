@@ -1,0 +1,1292 @@
+---
+title: "Redd Sightability Study"
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+author: 
+  - name: Kevin See^[Biometrician, Biomark, Inc., Kevin.See@merck.com]
+  - name: Claire McGrath^[Natural Resources Specialist, Columbia Hydropower Branch at NOAA Fisheries, West Coast Region, riverbio@yahoo.com]
+  - name: Russ Thurow^[USDA Forest Service Rocky Mountain Research Station]
+output: 
+  html_document:
+    fig_caption: yes
+    fig_height: 8
+    fig_width: 8
+    theme: simplex
+    toc: true
+    toc_float: 
+      collapsed: true
+      smooth_scroll: true
+    toc_depth: 3
+  prettydoc::html_pretty:
+    theme: tactile
+    fig_caption: yes
+    fig_height: 8
+    fig_width: 8
+    toc: true
+    toc_depth: 3
+csl: templates/american-fisheries-society.csl
+bibliography: references.bib
+---
+
+```{r intro_prep, message=F, warning=F, results='hide', echo = F}
+library(knitr)
+library(captioner)
+library(pander)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  echo = FALSE,
+  comment = "#>",
+  fig.path = "../figures/sightability/",
+  dpi = 300
+)
+
+table_nums = captioner(prefix = 'Table')
+fig_nums = captioner()
+
+options(knitr.kable.NA = '-')
+
+# setwd('analysis')
+```
+
+### Collaborators
+__Russ Thurow__
+_USDA Forest Service Rocky Mountain Research Station_
+
+__Claire McGrath__
+_Natural Resources Specialist, Columbia Hydropower Branch at NOAA Fisheries, West Coast Region, riverbio@yahoo.com_
+
+__Kevin See__
+_Biometrician, Biomark Inc, Boise, ID, Kevin.See@merck.com_
+
+
+```{r list_table_figures}
+covar_tab = table_nums(name = 'covar_tab', 
+                          caption = 'Possible covariates included in each observer error model.')
+
+obs_rates_fig = fig_nums(name = 'obs_rates_fig',
+                         caption = 'Observed error rates.')
+
+mod_coef = table_nums(name = 'mod_coef',
+                      caption = 'Estimated coefficients for various observer error models.')
+
+rel_imp_fig_g = fig_nums(name = 'rel_imp_fig_g',
+                    caption = "Relative importance of each covariate in ground-based observer error models")
+
+r2_fig_g = fig_nums(name = 'r2_fig_g',
+                    caption = 'How much variance in the model response is explained by the fixed and random effects in the best AICc model.')
+
+obs_pred_omi_g = fig_nums(name = 'obs_pred_omi_g',
+                          caption = 'Observed versus predicted rates of omission using model averaged predictions, the single best model, and the naive model (only random effects).')
+
+pred_corr_omi_g = fig_nums(name = 'pred_corr_omi_g',
+                           caption = 'Correlations between observed omission rates and three model predictions (model averaged, single best and naive).')
+
+obs_pred_com_g = fig_nums(name = 'obs_pred_com_g',
+                          caption = 'Observed versus predicted rates of commission using model averaged predictions, the single best model, and the naive model (only random effects).')
+
+pred_corr_com_g = fig_nums(name = 'pred_corr_com_g',
+                           caption = 'Correlations between observed commission rates and three model predictions (model averaged, single best and naive).')
+
+obs_pred_net_g = fig_nums(name = 'obs_pred_net_g',
+                          caption = 'Observed versus predicted rates of net error using model averaged predictions, the single best model, and the naive model (only random effects).')
+
+pred_corr_net_g = fig_nums(name = 'pred_corr_net_g',
+                           caption = 'Correlations between observed net error rates and three model predictions (model averaged, single best and naive).')
+
+# redd_est_g = fig_nums(name = 'redd_est_g',
+#                       caption = 'Observed number of true redds vs. predicted redds based on either the net error or omission/commission models. Dashed line is the 1-1 line, while solid line with gray error ribbon is the best fit linear model to these data.')
+
+grnd_bias_fig = fig_nums(name = 'grnd_bias_fig', 
+                          caption = 'Boxplots of absolute and relative bias for each type of predictive model.')
+
+redd_cv_g = fig_nums(name = 'redd_cv_g',
+                      caption = 'Observed number of true redds vs. leave-one-out cross validated predicted redds based on either the best AICc or naive versions of the net error or omission/commission models. Dashed line is the 1-1 line, while solid line with gray error ribbon is the best fit linear model to these data.')
+
+# grnd_pred_tab = table_nums(name = 'grnd_pred_tab', 
+#                           caption = 'Summary statistics of predictions of total redds using the net error and the omission/commission models.')
+
+grnd_cv_tab = table_nums(name = 'grnd_cv_tab', 
+                          caption = 'Summary statistics of predictions of total redds from leave-one-out cross validation using the net error and the omission/commission models.')
+
+
+rel_imp_fig_a = fig_nums(name = 'rel_imp_fig_a',
+                    caption = "Relative importance of each covariate in ground-based observer error models")
+
+r2_fig_a = fig_nums(name = 'r2_fig_a',
+                    caption = 'How much variance in the model response is explained by the fixed and random effects in the best AICc model.')
+
+
+obs_pred_omi_a = fig_nums(name = 'obs_pred_omi_a',
+                          caption = 'Observed versus predicted rates of omission using model averaged predictions, the single best model, and the naive model (only random effects).')
+
+pred_corr_omi_a = fig_nums(name = 'pred_corr_omi_a',
+                           caption = 'Correlations between observed omission rates and three model predictions (model averaged, single best and naive).')
+
+obs_pred_com_a = fig_nums(name = 'obs_pred_com_a',
+                          caption = 'Observed versus predicted rates of commission using model averaged predictions, the single best model, and the naive model (only random effects).')
+
+pred_corr_com_a = fig_nums(name = 'pred_corr_com_a',
+                           caption = 'Correlations between observed commission rates and three model predictions (model averaged, single best and naive).')
+
+obs_pred_net_a = fig_nums(name = 'obs_pred_net_a',
+                          caption = 'Observed versus predicted rates of net error using model averaged predictions, the single best model, and the naive model (only random effects).')
+
+pred_corr_net_a = fig_nums(name = 'pred_corr_net_a',
+                           caption = 'Correlations between observed net error rates and three model predictions (model averaged, single best and naive).')
+
+# redd_est_a = fig_nums(name = 'redd_est_a',
+#                       caption = 'Observed number of true redds vs. predicted redds based on either the net error or omission/commission models. Dashed line is the 1-1 line, while solid line with gray error ribbon is the best fit linear model to these data.')
+
+air_bias_fig = fig_nums(name = 'air_bias_fig', 
+                          caption = 'Boxplots of absolute and relative bias for each type of predictive model.')
+
+redd_cv_a = fig_nums(name = 'redd_cv_a',
+                      caption = 'Observed number of true redds vs. leave-one-out cross validated predicted redds based on either the best AICc or naive versions of the net error or omission/commission models. Dashed line is the 1-1 line, while solid line with gray error ribbon is the best fit linear model to these data.')
+
+# air_pred_tab = table_nums(name = 'air_pred_tab', 
+#                           caption = 'Summary statistics of predictions of total redds using the net error and the omission/commission models.')
+
+air_cv_tab = table_nums(name = 'air_cv_tab', 
+                          caption = 'Summary statistics of predictions of total redds from leave-one-out cross validation using the net error and the omission/commission models.')
+
+```
+
+
+# Goals
+
+Salmon redd counts are widespread method to estimate the number of returning adult spawners. However, despite its prevalence in the Northwest, the reliability of redd counts is unknown. This work is focused on developing a statistical model to estimate the observer error in redd surveys, using a variety of covariates related to the habitat and the observer. We described three types of observer error: 
+
+* omission rate, $\omega$ (proprotion of redds available to be counted that were missed by the observer) 
+* commission rate, $\eta$ (rate of redds counted by an observer that were not actually redds)
+* net error, $\gamma$ (ratio of observed redds to true redds). This was modeled using log(net error) as the reponse. 
+
+# Methods
+
+```{r load_data_models}
+#----------------------------------------------------------------
+library(tidyverse)
+library(magrittr)
+library(lme4)
+library(MuMIn)
+library(GGally)
+# library(corrplot)
+# library(gridExtra)
+
+theme_set(theme_bw())
+theme_update(panel.grid = element_blank())
+
+#----------------------------------------------------------------
+# load data and model fits
+load('modelResults/fits_sightability.rda')
+
+# relative importance of each variable
+rel_imp_df = mod_fits %>%
+  select(Survey, Resp, fit) %>%
+  nest(mod_list = c(fit)) %>%
+  group_by(Survey, Resp) %>%
+  summarise(imp = map(mod_list,
+                      .f = function(x) {
+                        importance(unlist(x)) %>%
+                          enframe(name = "covar",
+                                  value = "rel_imp")
+                      })) %>%
+  ungroup() %>%
+  split(list(.$Survey, .$Resp)) %>%
+  map_df(.id = 'mod',
+         .f = function(x) {
+           x$imp[[1]]
+         }) %>%
+  mutate(Survey = str_split(mod, "\\.", simplify = T)[,1],
+         Resp = str_split(mod, "\\.", simplify = T)[,2]) %>%
+  select(Survey, Resp, covar, rel_imp)
+
+# model coefficients
+mod_coef = mod_sel %>%
+  ungroup() %>%
+  filter(type %in% c('best','avg', 'full')) %>%
+  # select(Survey, Resp, avg) %>%
+  mutate(coef = map(model,
+                    .f = function(x) {
+                      coefTable(x,
+                                full = F,
+                                adjust.se = T) %>%
+                        as_tibble(rownames = 'Covariate') %>%
+                        select(-df)
+                    })) %>%
+  select(Survey:type, coef) %>%
+  unnest(cols = coef) %>%
+  arrange(Survey, Resp, type, desc(abs(Estimate)))
+
+# mod_coef %>%
+#   select(-`Std. Error`) %>%
+#   spread(type, Estimate)
+
+# observed vs. predicted dataframe
+obs_pred_df = mod_sel %>%
+  select(-starts_with("R2")) %>%
+  left_join(mod_data %>%
+              group_by(Survey) %>%
+              nest()) %>%
+  mutate(id = map(data,
+                  .f = function(x) {
+                    x %>%
+                      pull(id)
+                  }),
+         obs = map2(data, Resp,
+                   .f = function(x, y) {
+                     col_nm = if_else(y == 'Com',
+                                   "CommisRate",
+                                   if_else(y == 'Omi',
+                                           "OmisRate",
+                                           "log_NetError"))
+                     
+                     x %>%
+                       pull(col_nm) %>%
+                       return()
+                   })) %>%
+  mutate(preds = map2(data, model,
+                      .f = function(x, y) {
+                        predict(y,
+                                newdata = x,
+                                type = 'response')
+                      })) %>%
+  select(Survey, Resp, type, id, obs, preds) %>%
+  unnest(cols = c(id, obs, preds)) %>%
+  mutate(type = recode(type,
+                       'avg' = 'Model Averaged',
+                       'best' = 'Best Model',
+                       'naive' = 'Naive Model')) %>%
+  ungroup()
+
+# Leave-one-out cross validation, predicted error rates
+loocv_rate = loocv_df %>%
+  mutate(id = map(loocv,
+                  .f = function(x) {
+                    x %>%
+                      pull(id)
+                  })) %>%
+  mutate(Year = map(loocv,
+                  .f = function(x) {
+                    x %>%
+                      pull(Year)
+                  })) %>%
+  select(Year, Survey, Resp, mod_type, id, ends_with("_rate")) %>%
+  unnest(cols = c(Year, id, ends_with("_rate"))) %>%
+  mutate(abs_bias = pred_rate - obs_rate,
+         rel_bias = abs_bias / obs_rate) %>%
+  mutate_at(vars(rel_bias),
+            list(~ . / 100)) %>%
+  gather(bias_type, bias, ends_with('bias')) %>%
+  mutate(bias_type = recode(bias_type,
+                            'abs_bias' = 'Absolute Bias',
+                            'rel_bias' = 'Relative Bias'),
+         Resp = recode(Resp,
+                       'Net' = 'Net Error',
+                       'Omi' = 'Omission',
+                       'Com' = 'Commission'),
+         mod_type = recode(mod_type,
+                           'best' = 'Best Model',
+                           'naive' = 'Naive Model'))
+
+# Leave-one-out cross validation, predicted redds
+# start with Net Error
+loocv_redds = loocv_df %>%
+  filter(Resp == 'Net') %>%
+  mutate(id = map(loocv,
+                  .f = function(x) {
+                    pull(x, id)
+                  }),
+         Year = map(loocv,
+                  .f = function(x) {
+                    x %>%
+                      pull(Year)
+                  }),
+         obs_redds = map(loocv,
+                         .f = function(x) {
+                           x %>%
+                             pull(ObserverCt)
+                         }),
+         true_redds = map(loocv,
+                          .f = function(x) {
+                            x %>%
+                              pull(TrueReachCt)
+                          }),
+         pred_redds = map2(obs_redds,
+                           pred_rate,
+                           .f = function(x, y) {
+                             x / exp(y)
+                           })) %>%
+  select(Year, Survey, Resp, id, mod_type, ends_with("_redds")) %>%
+  unnest(cols = c(Year, id, ends_with("_redds"))) %>%
+  mutate(abs_bias = pred_redds - true_redds,
+         rel_bias = abs_bias / true_redds) %>%
+  gather(bias_type, bias, ends_with('bias')) %>%
+  # add in raw bias from observed counts
+  bind_rows(loocv_df %>%
+              filter(Resp == 'Net') %>%
+              mutate(id = map(loocv,
+                              .f = function(x) {
+                                pull(x, id)
+                              }),
+                     Year = map(loocv,
+                                .f = function(x) {
+                                  x %>%
+                                    pull(Year)
+                                }),
+                     obs_redds = map(loocv,
+                                     .f = function(x) {
+                                       x %>%
+                                         pull(ObserverCt)
+                                     }),
+                     true_redds = map(loocv,
+                                      .f = function(x) {
+                                        x %>%
+                                          pull(TrueReachCt)
+                                      })) %>%
+              select(Year, Survey, Resp, id, mod_type, ends_with("_redds")) %>%
+              unnest(cols = c(Year, id, ends_with("_redds"))) %>%
+              mutate(abs_bias = obs_redds - true_redds,
+                     rel_bias = abs_bias / true_redds,
+                     mod_type = 'obs',
+                     Resp = 'Net') %>%
+              gather(bias_type, bias, ends_with('bias'))) %>%
+  bind_rows(mod_data %>%
+              select(Year, Survey, id, 
+                     obs_redds = ObserverCt,
+                     true_redds = TrueReachCt) %>%
+            left_join(loocv_df %>%
+                        filter(Resp != 'Net') %>%
+                        mutate(id = map(loocv,
+                                        .f = function(x) {
+                                          pull(x, id)
+                                        }),
+                               Year = map(loocv,
+                                          .f = function(x) {
+                                            x %>%
+                                              pull(Year)
+                                          })) %>%
+                        select(Year, Survey, Resp, id, mod_type, pred_rate) %>%
+                        spread(Resp, pred_rate) %>%
+                        unnest(cols = c(Year, id, Com, Omi))) %>%
+              mutate(pred_redds = obs_redds * (1 - Com) / (1 - Omi)) %>%
+              mutate(Resp = 'Omis / Comm Error') %>%
+              mutate(abs_bias = pred_redds - true_redds,
+                     rel_bias = abs_bias / true_redds) %>%
+              gather(bias_type, bias, ends_with('bias')) %>%
+              select(Year, Survey, Resp,
+                     mod_type, id, ends_with("redds"),
+                     starts_with("bias")) %>%
+              # add in raw bias from observed counts
+              bind_rows(loocv_df %>%
+                          filter(Resp == 'Net') %>%
+                          mutate(id = map(loocv,
+                                          .f = function(x) {
+                                            pull(x, id)
+                                          }),
+                                 Year = map(loocv,
+                                            .f = function(x) {
+                                              x %>%
+                                                pull(Year)
+                                            }),
+                                 obs_redds = map(loocv,
+                                                 .f = function(x) {
+                                                   x %>%
+                                                     pull(ObserverCt)
+                                                 }),
+                                 true_redds = map(loocv,
+                                                  .f = function(x) {
+                                                    x %>%
+                                                      pull(TrueReachCt)
+                                                  })) %>%
+                          select(Year, Survey, Resp, id, mod_type, ends_with("_redds")) %>%
+                          unnest(cols = c(Year, id, ends_with("_redds"))) %>%
+                          mutate(abs_bias = obs_redds - true_redds,
+                                 rel_bias = abs_bias / true_redds,
+                                 mod_type = 'obs',
+                                 Resp = 'Omis / Comm Error') %>%
+                          gather(bias_type, bias, ends_with('bias')))) %>%
+  mutate(bias_type = recode(bias_type,
+                            'abs_bias' = 'Absolute Bias',
+                            'rel_bias' = 'Relative Bias'),
+         Resp = recode(Resp,
+                       'Net' = 'Net Error'),
+         mod_type = recode(mod_type,
+                           'obs' = 'Observed',
+                           'best' = 'Best Model',
+                           'naive' = 'Naive Model'))
+
+```
+
+
+```{r make-plots}
+imp_p_g = rel_imp_df %>%
+  filter(Survey == 'Ground') %>%
+  mutate(Model = recode(Resp, 
+                        'Net' = 'Net Error',
+                        'Omi' = 'Omission',
+                        'Com' = 'Commission'),
+         Model = factor(Model,
+                        levels = c("Net Error", 'Omission', 'Commission'))) %>%
+  mutate(covar = fct_reorder(covar,
+                             rel_imp,
+                             mean)) %>%
+  ggplot(aes(x = covar,
+             y = rel_imp)) +
+  geom_bar(stat = 'identity',
+           fill = 'darkgray') +
+  facet_wrap(~ Model) +
+  labs(x = 'Covariate',
+       y = 'Relative Importance') +
+  coord_flip() 
+
+imp_p_a = rel_imp_df %>%
+  filter(Survey == 'Air') %>%
+  mutate(Model = recode(Resp, 
+                        'Net' = 'Net Error',
+                        'Omi' = 'Omission',
+                        'Com' = 'Commission'),
+         Model = factor(Model,
+                        levels = c("Net Error", 'Omission', 'Commission'))) %>%
+  mutate(covar = fct_reorder(covar,
+                             rel_imp,
+                             mean)) %>%
+  ggplot(aes(x = covar,
+             y = rel_imp)) +
+  geom_bar(stat = 'identity',
+           fill = 'darkgray') +
+  facet_wrap(~ Model) +
+  labs(x = 'Covariate',
+       y = 'Relative Importance') +
+  coord_flip() 
+
+
+
+```
+
+```{r eval = F}
+# pull out best models
+best_list_g = lapply(grnd_mods, function(x) x$best_mod)
+avg_list_g = lapply(grnd_mods, function(x) x$mod_avg)
+naive_list_g = lapply(grnd_mods, function(x) x$naive_mod)
+
+# net_err_mod_g = best_list_g[['Net']]
+# omi_err_mod_g = best_list_g[['Omi']]
+# com_err_mod_g = best_list_g[['Com']]
+
+
+# Obs vs. pred plot
+obs_pred_list_g = llply(grnd_mods, .fun = function(x) x$obs_pred_p)
+obs_pred_list_g[['Net']] = obs_pred_list_g[['Net']] +
+  geom_vline(xintercept = 0,
+             color = 'darkblue',
+             linetype = 3) +
+  geom_hline(yintercept = 0,
+             color = 'darkblue',
+             linetype = 3) +
+  labs(title = 'Net Error')
+
+obs_pred_list_g[['Omi']] = obs_pred_list_g[['Omi']] +
+  labs(title = 'Omission Rate')
+  
+obs_pred_list_g[['Com']] = obs_pred_list_g[['Com']] +
+  labs(title = 'Commission Rate')
+
+# correlations between models
+pred_corr_list_g = llply(grnd_mods, .fun = function(x) x$pred_corr_p)
+
+# make predictions of true redds based on net error OR omission/commission models
+# using best model
+# plot_df_g = grnd_data %>%
+#   select(Year:TrueReachCt, obs_cnt) %>%
+#   mutate(log_net_err_est = predict(best_list_g[['Net']], type = 'response'),
+#          net_err_est = exp(log_net_err_est),
+#          net_err_pred = obs_cnt / net_err_est,
+#          com_rate = predict(best_list_g[['Com']], type = 'response'),
+#          omi_rate = predict(best_list_g[['Omi']], type = 'response'),
+#          omi_com_pred = obs_cnt - (obs_cnt * com_rate)  / (1 - omi_rate)) %>%
+#   mutate_each(list(~ifelse(. < 0, 0, .)), net_err_pred, omi_com_pred)
+
+# using model average
+plot_df_g = grnd_data %>%
+  select(Year:TrueReachCt, frxn_true, obs_cnt) %>%
+  mutate(log_net_err_est = predict(avg_list_g[['Net']], type = 'response'),
+         net_err_est = exp(log_net_err_est),
+         net_err_pred = obs_cnt / net_err_est,
+         com_rate = predict(avg_list_g[['Com']], type = 'response'),
+         omi_rate = predict(avg_list_g[['Omi']], type = 'response'),
+         # omi_com_pred = obs_cnt - (obs_cnt * com_rate)  / (1 - omi_rate),
+         omi_com_pred = obs_cnt * (1 - com_rate)  / (1 - omi_rate)) %>%
+  mutate_at(vars(net_err_pred, omi_com_pred),
+            list(~ifelse(. < 0, 0, .)))
+
+redd_p_g = plot_df_g %>%
+  gather(model, pred, -(Year:obs_cnt), -matches('est$'), -matches('rate$')) %>%
+  mutate(model = recode(model, 
+                        'net_err_pred' = 'Net Error',
+                        'omi_com_pred' = 'Omis / Comm Error')) %>%
+  ggplot(aes(x = TrueReachCt,
+             y = pred)) +
+  geom_abline(slope = 1,
+              intercept = 0,
+              linetype = 2,
+              color = 'black') +
+  # geom_point(aes(color = com_rate),
+  #            size = 3) +
+  # geom_point(aes(color = 1 - omi_rate),
+  #            size = 3) +
+  # scale_color_gradient(low = 'blue', high = 'red') +
+  geom_point(aes(color = log(frxn_true)),
+             size = 3) +
+  scale_color_gradient2(low = 'blue', mid = 'gray', high = 'red', midpoint = 0) +
+  geom_smooth(method = lm) +
+  facet_wrap(~ model) +
+  labs(x = 'True Redd Count',
+       y = 'Predicted Redd Count',
+       color = 'Log Net Error Rate')
+
+# leave-one-out cross validation predictions of redds
+cv_tmp = ldply(grnd_mods, 
+                  .id = 'Model', 
+                  function(x) {
+                    x$cv_df
+                  }) %>% tbl_df() %>%
+              select(-(new_reach:new_surveyor))
+
+cv_df_g = grnd_data %>%
+  select(Year, Reach, Surveyor, TrueReachCt, obs_cnt) %>%
+  full_join(cv_tmp %>%
+              filter(Model == 'Net') %>%
+              rename(net_obs = obs,
+                     net_best = pred_best,
+                     net_naive = pred_naive) %>%
+              select(-Model) %>%
+              left_join(cv_tmp %>%
+                          filter(Model == 'Omi') %>%
+                          rename(omi_obs = obs,
+                                 omi_best = pred_best,
+                                 omi_naive = pred_naive) %>%
+                          select(-Model)) %>%
+              left_join(cv_tmp %>%
+                          filter(Model == 'Com') %>%
+                          rename(com_obs = obs,
+                                 com_best = pred_best,
+                                 com_naive = pred_naive) %>%
+                          select(-Model))) %>%
+  mutate(pred_net_best = obs_cnt / exp(net_best),
+         pred_net_naive = obs_cnt / exp(net_naive),
+         pred_om_com_best = obs_cnt * (1 - com_best) / (1 - omi_best),
+         pred_om_com_naive = obs_cnt * (1 - com_naive) / (1 - omi_naive))
+
+#----------------------------------------------------------------
+# Air surveys
+#----------------------------------------------------------------
+air_mods = vector('list', 3)
+names(air_mods) = c('Net', 'Omi', 'Com')
+# load some model fits
+# ground surveys
+# Net Error
+load('modelResults/NetError_Air.rda')
+air_mods[['Net']] = mod_res
+rm(mod_res)
+
+# Omission
+load('modelResults/Omission_Air.rda')
+air_mods[['Omi']] = mod_res
+rm(mod_res)
+
+# Commission
+load('modelResults/Commission_Air.rda')
+air_mods[['Com']] = mod_res
+rm(mod_res)
+
+# pull out best models
+best_list_a = lapply(air_mods, function(x) x$best_mod)
+avg_list_a = lapply(air_mods, function(x) x$mod_avg)
+
+# net_err_mod_a = best_list_a[['Net']]
+# omi_err_mod_a = best_list_a[['Omi']]
+# com_err_mod_a = best_list_a[['Com']]
+
+# relative importance of each variable
+imp_df_a = lapply(air_mods, function(x) stack(importance(x$mod_select)) %>%
+                    rename(rel_imp = values,
+                           covar = ind)) %>%
+  ldply(.id = 'Model')
+
+covar_order_a = imp_df_a %>%
+  group_by(covar) %>%
+  summarise(rel_imp = mean(rel_imp)) %>%
+  arrange(rel_imp) %>%
+  select(covar) %>%
+  as.matrix() %>% as.character()
+
+imp_p_a = imp_df_a %>%
+  mutate(covar = factor(covar, levels = covar_order_a)) %>%
+  mutate(Model = recode(Model, 
+                        'Net' = 'Net Error',
+                        'Omi' = 'Omission',
+                        'Com' = 'Commission')) %>%
+  ggplot(aes(x = covar,
+             y = rel_imp)) +
+  geom_bar(stat = 'identity',
+           fill = 'darkgray') +
+  facet_wrap(~ Model) +
+  labs(x = 'Covariate',
+       y = 'Relative Importance') +
+  coord_flip() 
+
+# Obs vs. pred plot
+obs_pred_list_a = llply(air_mods, .fun = function(x) x$obs_pred_p)
+obs_pred_list_a[['Net']] = obs_pred_list_a[['Net']] +
+  geom_vline(xintercept = 0,
+             color = 'darkblue',
+             linetype = 3) +
+  geom_hline(yintercept = 0,
+             color = 'darkblue',
+             linetype = 3) +
+  labs(title = 'Net Error')
+
+obs_pred_list_a[['Omi']] = obs_pred_list_a[['Omi']] +
+  labs(title = 'Omission Rate')
+  
+obs_pred_list_a[['Com']] = obs_pred_list_a[['Com']] +
+  labs(title = 'Commission Rate')
+
+# correlations between models
+pred_corr_list_a = llply(air_mods, .fun = function(x) x$pred_corr_p)
+
+# make predictions of true redds based on net error OR omission/commission models
+# using best model
+# plot_df_a = air_data %>%
+#   select(Year:TrueReachCt, obs_cnt) %>%
+#   mutate(log_net_err_est = predict(best_list_a[['Net']], type = 'response'),
+#          net_err_est = exp(log_net_err_est),
+#          net_err_pred = obs_cnt / net_err_est,
+#          com_rate = predict(best_list_a[['Com']], type = 'response'),
+#          omi_rate = predict(best_list_a[['Omi']], type = 'response'),
+#          omi_com_pred = obs_cnt - (obs_cnt * com_rate)  / (1 - omi_rate)) %>%
+#   mutate_each(list(~ifelse(. < 0, 0, .)), net_err_pred, omi_com_pred)
+
+# using model average
+plot_df_a = air_data %>%
+  select(Year:TrueReachCt, frxn_true, obs_cnt) %>%
+  mutate(log_net_err_est = predict(avg_list_a[['Net']], type = 'response'),
+         net_err_est = exp(log_net_err_est),
+         net_err_pred = obs_cnt / net_err_est,
+         com_rate = predict(avg_list_a[['Com']], type = 'response'),
+         omi_rate = predict(avg_list_a[['Omi']], type = 'response'),
+         # omi_com_pred = obs_cnt - (obs_cnt * com_rate)  / (1 - omi_rate),
+         omi_com_pred = obs_cnt * (1 - com_rate)  / (1 - omi_rate)) %>%
+  mutate_each(list(~ifelse(. < 0, 0, .)), net_err_pred, omi_com_pred)
+
+redd_p_a = plot_df_a %>%
+  gather(model, pred, -(Year:obs_cnt), -matches('est$'), -matches('rate$')) %>%
+  mutate(model = recode(model, 
+                        'net_err_pred' = 'Net Error',
+                        'omi_com_pred' = 'Omis / Comm Error')) %>%
+  ggplot(aes(x = TrueReachCt,
+             y = pred)) +
+  geom_abline(slope = 1,
+              intercept = 0,
+              linetype = 2,
+              color = 'black') +
+  # geom_point(aes(color = com_rate),
+  #            size = 3) +
+  # geom_point(aes(color = 1 - omi_rate),
+  #            size = 3) +
+  # scale_color_gradient(low = 'blue', high = 'red') +
+  geom_point(aes(color = log(frxn_true)),
+             size = 3) +
+  scale_color_gradient2(low = 'blue', mid = 'gray', high = 'red', midpoint = 0) +
+  geom_smooth(method = lm) +
+  facet_wrap(~ model) +
+  labs(x = 'True Redd Count',
+       y = 'Predicted Redd Count',
+       color = 'Log Net Error Rate')
+
+# leave-one-out cross validation predictions of redds
+cv_tmp = ldply(air_mods, 
+                  .id = 'Model', 
+                  function(x) {
+                    x$cv_df
+                  }) %>% tbl_df() %>%
+              select(-(new_reach:new_surveyor))
+
+cv_df_a = air_data %>%
+  select(Year, Reach, Surveyor, TrueReachCt, obs_cnt) %>%
+  full_join(cv_tmp %>%
+              filter(Model == 'Net') %>%
+              rename(net_obs = obs,
+                     net_best = pred_best,
+                     net_naive = pred_naive) %>%
+              select(-Model) %>%
+              left_join(cv_tmp %>%
+                          filter(Model == 'Omi') %>%
+                          rename(omi_obs = obs,
+                                 omi_best = pred_best,
+                                 omi_naive = pred_naive) %>%
+                          select(-Model)) %>%
+              left_join(cv_tmp %>%
+                          filter(Model == 'Com') %>%
+                          rename(com_obs = obs,
+                                 com_best = pred_best,
+                                 com_naive = pred_naive) %>%
+                          select(-Model))) %>%
+  mutate(pred_net_best = obs_cnt / exp(net_best),
+         pred_net_naive = obs_cnt / exp(net_naive),
+         pred_om_com_best = obs_cnt * (1 - com_best) / (1 - omi_best),
+         pred_om_com_naive = obs_cnt * (1 - com_naive) / (1 - omi_naive))
+
+```
+
+Possible covariates in each error model are shown in `r table_nums('covar_tab', display = 'c')`. To make comparisons with AICc, the random effects must be identical across all models. Therefore, we ensured that the random effect of year was added to any model that didn't have it. 
+
+`r table_nums('covar_tab', display = 'f')`
+```{r covariates_tab}
+# table of which covariates are in at least one model
+all_mod_specs %>%
+  mutate(grp = paste(Survey, Resp, sep= '_'),
+         Incl = 'X') %>%
+  select(Type = EffectType, Survey, Covariate = VarName, Incl) %>%
+  distinct() %>%
+  spread(Survey, Incl, fill = '') %>%
+  arrange(desc(Type), Covariate) %>%
+  kable()
+
+```
+
+All covariates were z-scored, and all models were fit using the *glmer* or *lmer* functions from the lme4 package [@Bates2015] in R software [@Rsoftware2019]. The amount of variation explained by fixed and random effects was calculated using the methods of @Nakagawa2013. Using estimated predictions of the rates for omission ($\hat{\omega}$), commission ($\hat{\eta}$) and net error ($\hat{\gamma}$), we predicted the number of actual redds by either dividing the observed counts, $c$, by estimates of net error, or by multiplying the observed counts by 1 - estimated rate of commission, and then dividing by 1 - estimated rate of omission.
+
+We performed a cross validation by dividing each survey type data into `r n_folds` training datasets where 20% of the data was withheld for testing, and then fitting the naive and best AICc model formulations to the remaining data, and then using those fits to predict the error rates and true number of redds for each survey in the year that had been withheld. 
+
+$$
+\begin{aligned}
+redds_{ne} &= \frac{c}{\hat{\gamma}} \\
+redds_{om} &= c * \frac{1 - \hat{\eta}}{1 - \hat{\omega}}
+\end{aligned}
+$$
+
+The observed error rates are showin in `r fig_nums('obs_rates_fig', display = 'c')`.
+
+```{r obs_rates_fig, fig.cap = fig_nums('obs_rates_fig'), fig.height = 5}
+raw_data %>%
+  select(Year:Surveyor, OmisRate, CommisRate, NetError = frxn_true) %>%
+  gather(error, value, -(Year:Surveyor)) %>%
+  mutate(error = recode(error,
+                        'OmisRate' = 'Omission',
+                        'CommisRate' = 'Commission',
+                        'NetError' = 'Net Error')) %>%
+  ggplot(aes(x = Survey,
+             y = value)) +
+  geom_boxplot() +
+  facet_wrap(~ error, scales = 'free_y') +
+  labs(y = 'Rate')
+```
+
+
+# Results
+
+## Model Coefficients
+
+The model coefficients of the full, best (by AICc) and model averaged models are shown in `r table_nums('mod_coef', display = 'c')`.
+
+`r table_nums('mod_coef', display = 'f')`
+```{r coef-tab}
+mod_coef %>%
+  select(-`Std. Error`) %>%
+  spread(type, Estimate) %>%
+  filter(Survey == "Ground") %>%
+  kable(digits = 3)
+
+mod_coef %>%
+  select(-`Std. Error`) %>%
+  spread(type, Estimate) %>%
+  filter(Survey == "Air") %>%
+  kable(digits = 3)
+```
+
+
+## Ground Surveys
+
+The relative importance of each covariate in each model is shown in `r fig_nums('rel_imp_fig_g', display = 'c')`, while the amount of the variance explained by fixed and random effects in the best AICc model is shown in `r fig_nums('r2_fig_g', display = 'c')`. Observed versus predicted rate plots are shown in Figures `r fig_nums('obs_pred_omi_g', display = 'n')`, `r fig_nums('obs_pred_com_g', display = 'n')` and `r fig_nums('obs_pred_net_g', display = 'n')`. 
+
+```{r rel_imp_plot_g, fig.cap = fig_nums('rel_imp_fig_g'), fig.height = 6}
+print(imp_p_g)
+```
+
+```{r r2_plot_g, fig.cap = fig_nums('r2_fig_g'), fig.height=6}
+mod_sel %>%
+  filter(type == 'best',
+         Survey == "Ground") %>%
+  select(-type, -model) %>%
+  rename(Fixed = R2m,
+         Total = R2c) %>%
+  mutate(Random = Total - Fixed) %>%
+  gather(type, r2, -Survey, -Resp) %>%
+  filter(type != 'Total') %>%
+  mutate(Model = factor(Resp,
+                       levels = c('Com', 'Omi', 'Net')),
+         Model = fct_rev(Model),
+         type = factor(type,
+                       levels = c('Random', 'Fixed'))) %>%
+  ggplot(aes(x = Model,
+             y = r2,
+             fill = type)) +
+  geom_bar(stat = 'identity') +
+  labs(y = expression(R^2),
+       fill = 'Effects') +
+  scale_fill_brewer(palette = "Set1") +
+  coord_flip()
+```
+
+### Omission
+
+```{r omi_obs_pred_plot_g, fig.cap = fig_nums('obs_pred_omi_g'), fig.height = 4}
+obs_pred_df %>%
+  filter(Survey == 'Ground',
+         Resp == 'Omi',
+         type != 'full') %>%
+  ggplot(aes(x = obs,
+             y = preds)) +
+  geom_abline(color = 'red',
+              linetype = 2) +
+  geom_smooth(method = lm) +
+  geom_point() +
+  facet_wrap(~ type) +
+  labs(title = 'Omission Rate',
+       x = "Observed",
+       y = "Predicted")
+```
+
+```{r omi_pred_corr_plot_g, fig.cap = fig_nums('pred_corr_omi_g')}
+obs_pred_df %>%
+  filter(Survey == 'Ground',
+         Resp == 'Omi',
+         type != 'full') %>%
+  spread(type, preds) %>%
+  rename(Observed = obs) %>%
+  ggpairs(columns = c(4:7))
+```
+
+### Commission
+
+```{r com_obs_pred_plot_g, fig.cap = fig_nums('obs_pred_com_g'), fig.height = 4}
+obs_pred_df %>%
+  filter(Survey == 'Ground',
+         Resp == 'Com',
+         type != 'full') %>%
+  ggplot(aes(x = obs,
+             y = preds)) +
+  geom_abline(color = 'red',
+              linetype = 2) +
+  geom_smooth(method = lm) +
+  geom_point() +
+  facet_wrap(~ type) +
+  labs(title = 'Commission Rate',
+       x = "Observed",
+       y = "Predicted")
+```
+
+```{r com_pred_corr_plot_g, fig.cap = fig_nums('pred_corr_com_g')}
+obs_pred_df %>%
+  filter(Survey == 'Ground',
+         Resp == 'Com',
+         type != 'full') %>%
+  spread(type, preds) %>%
+  rename(Observed = obs) %>%
+  ggpairs(columns = c(4:7))
+```
+
+### Net Error
+
+```{r net_obs_pred_plot_g, fig.cap = fig_nums('obs_pred_net_g'), fig.height = 4}
+obs_pred_df %>%
+  filter(Survey == 'Ground',
+         Resp == 'Net',
+         type != 'full') %>%
+  ggplot(aes(x = obs,
+             y = preds)) +
+  geom_vline(xintercept = 0,
+             color = 'darkblue',
+             linetype = 3) +
+  geom_hline(yintercept = 0,
+             color = 'darkblue',
+             linetype = 3) +
+  geom_abline(color = 'red',
+              linetype = 2) +
+  geom_smooth(method = lm) +
+  geom_point() +
+  facet_wrap(~ type) +
+  labs(title = 'Net Error Rate',
+       x = "Observed",
+       y = "Predicted")
+```
+
+```{r net_pred_corr_plot_g, fig.cap = fig_nums('pred_corr_net_g')}
+obs_pred_df %>%
+  filter(Survey == 'Ground',
+         Resp == 'Net',
+         type != 'full') %>%
+  spread(type, preds) %>%
+  rename(Observed = obs) %>%
+  ggpairs(columns = c(4:7))
+```
+
+### Leave-One-Out Cross Validation
+
+#### Rate Estimates
+
+We examined the bias in estimates rates, using both the best (by AICc) model and the naive model (only random effects).
+
+```{r}
+loocv_rate %>%
+  filter(Survey == "Ground") %>% 
+  ggplot(aes(x = Resp,
+             y = bias,
+             fill = mod_type)) +
+  geom_boxplot() +
+  geom_hline(yintercept = 0,
+             linetype = 2) +
+  scale_fill_brewer(palette = 'Set1') +
+  facet_wrap(~ bias_type,
+             scales = 'free') +
+  theme(legend.position = 'bottom') +
+  labs(fill = 'Model',
+       y = 'Bias',
+       x = 'Error Rate')
+```
+
+#### Redd Estimates
+
+For ground-based surveys, both methods provided fairly unbiased estimates of the true number of redds (`r fig_nums('grnd_bias_fig', display = 'c')`), although the omission/commision models had slightly higher absolute and relative bias (`r table_nums('grnd_cv_tab', display = 'c')`). 
+
+```{r grnd_bias_plot, fig.cap = fig_nums('grnd_bias_fig'), fig.height = 5}
+loocv_redds %>%
+  filter(Survey == "Ground") %>%
+  ggplot(aes(x = Resp,
+             y = bias,
+             fill = mod_type)) +
+  geom_boxplot() +
+  geom_hline(yintercept = 0,
+             linetype = 2) +
+  scale_fill_brewer(palette = 'Set1') +
+  facet_wrap(~ bias_type,
+             scales = 'free') +
+  theme(legend.position = 'bottom') +
+  labs(fill = 'Model',
+       y = 'Bias',
+       x = 'Method')
+```
+
+`r table_nums('grnd_cv_tab', display = 'f')`
+```{r cv_pred_tab_g}
+loocv_redds %>%
+  filter(Survey == "Ground") %>%
+  distinct() %>%
+  unite(Model, mod_type, Resp, sep = ' ') %>%
+  mutate(Model = str_remove(Model, " Model"),
+         Model = recode(Model,
+                        "Observed Net Error" = "Observed",
+                        "Observed Omis / Comm Error" = "Observed")) %>%
+  distinct() %>%
+  spread(bias_type, bias) %>%
+  mutate(adj = abs(pred_redds - obs_redds)) %>%
+  group_by(Model) %>%
+  summarise(mean_cnt = median(obs_redds),
+            mean_redds = median(true_redds),
+            # mean_abs_bias = mean(`Absolute Bias`),
+            mean_adj = median(adj),
+            mean_abs_bias = median(`Absolute Bias`),
+            mean_rel_bias = median(`Relative Bias`) * 100,
+            RMSE = sqrt(mean(`Absolute Bias`^2))) %>%
+  kable(digits = 1,
+        col.names = c('Model', 'Median # Obs. Redds', 'Median # True Redds', 'Median Adjustment', 
+        'Median Abs. Bias', 'Median Rel. Bias (%)', 'RMSE'))
+```
+
+```{r cv_pred_fig_g, fig.cap = fig_nums('redd_cv_g')}
+loocv_redds %>%
+  filter(Survey == "Ground",
+         bias_type == 'Absolute Bias',
+         mod_type != "Observed") %>%
+  left_join(loocv_df %>%
+              ungroup() %>%
+              select(Survey, loocv) %>%
+              unnest(cols = c(loocv)) %>%
+              select(Year, Survey, id, log_NetError) %>%
+              distinct()) %>%
+  mutate_at(vars(Resp, mod_type),
+            list(fct_drop)) %>%
+  select(Year:pred_redds, log_NetError) %>%
+  distinct() %>%
+  ggplot(aes(true_redds,
+             pred_redds)) +
+  geom_point(aes(color = log_NetError)) +
+  scale_color_distiller(palette = 'RdBu') +
+  # scale_color_gradient2(low = "blue",
+  #                       mid = "lightgray",
+  #                       high = "red",
+  #                       midpoint = 0) +
+  geom_abline(linetype = 2,
+              color = 'red') +
+  geom_smooth(method = lm) +
+  facet_grid(Resp ~ mod_type) +
+  labs(x = 'Observed',
+       y = 'Predicted',
+       color = 'Log Net Error Rate',
+       title = 'Total Redds')
+```
+
+
+## Air Surveys
+
+The relative importance of each covariate in each model is shown in `r fig_nums('rel_imp_fig_a', display = 'c')`, while the amount of the variance explained by fixed and random effects in the best AICc model is shown in `r fig_nums('r2_fig_a', display = 'c')`. Observed versus predicted rate plots are shown in Figures `r fig_nums('obs_pred_omi_a', display = 'n')`, `r fig_nums('obs_pred_com_a', display = 'n')` and `r fig_nums('obs_pred_net_a', display = 'n')`. 
+
+
+```{r rel_imp_plot_a, fig.cap = fig_nums('rel_imp_fig_a'), fig.height = 6}
+print(imp_p_a)
+```
+
+```{r r2_plot_a, fig.cap = fig_nums('r2_fig_a'), fig.height=6}
+mod_sel %>%
+  filter(type == 'best',
+         Survey == "Air") %>%
+  select(-type, -model) %>%
+  rename(Fixed = R2m,
+         Total = R2c) %>%
+  mutate(Random = Total - Fixed) %>%
+  gather(type, r2, -Survey, -Resp) %>%
+  filter(type != 'Total') %>%
+  mutate(Model = factor(Resp,
+                       levels = c('Com', 'Omi', 'Net')),
+         Model = fct_rev(Model),
+         type = factor(type,
+                       levels = c('Random', 'Fixed'))) %>%
+  ggplot(aes(x = Model,
+             y = r2,
+             fill = type)) +
+  geom_bar(stat = 'identity') +
+  labs(y = expression(R^2),
+       fill = 'Effects') +
+  scale_fill_brewer(palette = "Set1") +
+  coord_flip()
+```
+
+### Omission
+
+```{r omi_obs_pred_plot_a, fig.cap = fig_nums('obs_pred_omi_a'), fig.height = 4}
+obs_pred_df %>%
+  filter(Survey == 'Air',
+         Resp == 'Omi',
+         type != 'full') %>%
+  ggplot(aes(x = obs,
+             y = preds)) +
+  geom_abline(color = 'red',
+              linetype = 2) +
+  geom_smooth(method = lm) +
+  geom_point() +
+  facet_wrap(~ type) +
+  labs(title = 'Omission Rate',
+       x = "Observed",
+       y = "Predicted")
+```
+
+```{r omi_pred_corr_plot_a, fig.cap = fig_nums('pred_corr_omi_a')}
+obs_pred_df %>%
+  filter(Survey == 'Air',
+         Resp == 'Omi',
+         type != 'full') %>%
+  spread(type, preds) %>%
+  rename(Observed = obs) %>%
+  ggpairs(columns = c(4:7))
+
+```
+
+### Commission
+
+```{r com_obs_pred_plot_a, fig.cap = fig_nums('obs_pred_com_a'), fig.height = 4}
+obs_pred_df %>%
+  filter(Survey == 'Air',
+         Resp == 'Com',
+         type != 'full') %>%
+  ggplot(aes(x = obs,
+             y = preds)) +
+  geom_abline(color = 'red',
+              linetype = 2) +
+  geom_smooth(method = lm) +
+  geom_point() +
+  facet_wrap(~ type) +
+  labs(title = 'Commission Rate',
+       x = "Observed",
+       y = "Predicted")
+```
+
+```{r com_pred_corr_plot_a, fig.cap = fig_nums('pred_corr_com_a')}
+obs_pred_df %>%
+  filter(Survey == 'Air',
+         Resp == 'Com',
+         type != 'full') %>%
+  spread(type, preds) %>%
+  rename(Observed = obs) %>%
+  ggpairs(columns = c(4:7))
+
+```
+
+### Net Error
+
+```{r net_obs_pred_plot_a, fig.cap = fig_nums('obs_pred_net_a'), fig.height = 4}
+obs_pred_df %>%
+  filter(Survey == 'Air',
+         Resp == 'Net',
+         type != 'full') %>%
+  ggplot(aes(x = obs,
+             y = preds)) +
+  geom_vline(xintercept = 0,
+             color = 'darkblue',
+             linetype = 3) +
+  geom_hline(yintercept = 0,
+             color = 'darkblue',
+             linetype = 3) +
+  geom_abline(color = 'red',
+              linetype = 2) +
+  geom_smooth(method = lm) +
+  geom_point() +
+  facet_wrap(~ type) +
+  labs(title = 'Net Error Rate',
+       x = "Observed",
+       y = "Predicted")
+```
+
+```{r net_pred_corr_plot_a, fig.cap = fig_nums('pred_corr_net_a')}
+obs_pred_df %>%
+  filter(Survey == 'Air',
+         Resp == 'Net',
+         type != 'full') %>%
+  spread(type, preds) %>%
+  rename(Observed = obs) %>%
+  ggpairs(columns = c(4:7))
+
+```
+
+### Leave-One-Out Cross Validation
+
+#### Rate Estimates
+
+We examined the bias in estimates rates, using both the best (by AICc) model and the naive model (only random effects).
+
+```{r}
+loocv_rate %>%
+  filter(Survey == "Air") %>% 
+  ggplot(aes(x = Resp,
+             y = bias,
+             fill = mod_type)) +
+  geom_boxplot() +
+  geom_hline(yintercept = 0,
+             linetype = 2) +
+  scale_fill_brewer(palette = 'Set1') +
+  facet_wrap(~ bias_type,
+             scales = 'free') +
+  theme(legend.position = 'bottom') +
+  labs(fill = 'Model',
+       y = 'Bias',
+       x = 'Error Rate')
+```
+
+#### Redd Estimates
+
+For air-based surveys, both methods provided estimates of the true number of redds that were biased high (`r fig_nums('air_bias_fig', display = 'c')`). However, the net error models had lower absolute and relative bias, as well as a smaller root squared mean error (RMSE) (`r table_nums('air_cv_tab', display = 'c')`). 
+
+```{r air_bias_plot, fig.cap = fig_nums('air_bias_fig'), fig.height = 5}
+loocv_redds %>%
+  filter(Survey == "Air") %>%
+  ggplot(aes(x = Resp,
+             y = bias,
+             fill = mod_type)) +
+  geom_boxplot() +
+  geom_hline(yintercept = 0,
+             linetype = 2) +
+  scale_fill_brewer(palette = 'Set1') +
+  facet_wrap(~ bias_type,
+             scales = 'free') +
+  theme(legend.position = 'bottom') +
+  labs(fill = 'Model',
+       y = 'Bias',
+       x = 'Method')
+
+```
+
+`r table_nums('air_cv_tab', display = 'f')`
+```{r cv_pred_tab_a}
+loocv_redds %>%
+  filter(Survey == "Air") %>%
+  distinct() %>%
+  unite(Model, mod_type, Resp, sep = ' ') %>%
+  mutate(Model = str_remove(Model, " Model"),
+         Model = recode(Model,
+                        "Observed Net Error" = "Observed",
+                        "Observed Omis / Comm Error" = "Observed")) %>%
+  distinct() %>%
+  spread(bias_type, bias) %>%
+  mutate(adj = abs(pred_redds - obs_redds)) %>%
+  group_by(Model) %>%
+  summarise(mean_cnt = median(obs_redds),
+            mean_redds = median(true_redds),
+            # mean_abs_bias = mean(`Absolute Bias`),
+            mean_adj = median(adj),
+            mean_abs_bias = median(`Absolute Bias`),
+            mean_rel_bias = median(`Relative Bias`) * 100,
+            RMSE = sqrt(mean(`Absolute Bias`^2))) %>%
+  kable(digits = 1,
+        col.names = c('Model', 'Median # Obs. Redds', 'Median # True Redds', 'Median Adjustment', 
+                      'Median Abs. Bias', 'Median Rel. Bias (%)', 'RMSE'))
+
+```
+
+```{r cv_pred_fig_a, fig.cap = fig_nums('redd_cv_a')}
+loocv_redds %>%
+  filter(Survey == "Air",
+         bias_type == 'Absolute Bias',
+         mod_type != "Observed") %>%
+  left_join(loocv_df %>%
+              ungroup() %>%
+              select(Survey, loocv) %>%
+              unnest(cols = c(loocv)) %>%
+              select(Year, Survey, id, log_NetError) %>%
+              distinct()) %>%
+  mutate_at(vars(Resp, mod_type),
+            list(fct_drop)) %>%
+  select(Year:pred_redds, log_NetError) %>%
+  distinct() %>%
+  ggplot(aes(true_redds,
+             pred_redds)) +
+  geom_point(aes(color = log_NetError)) +
+  scale_color_distiller(palette = 'RdBu') +
+  # scale_color_gradient2(low = "blue",
+  #                       mid = "lightgray",
+  #                       high = "red",
+  #                       midpoint = 0) +
+  geom_abline(linetype = 2,
+              color = 'red') +
+  geom_smooth(method = lm) +
+  facet_grid(Resp ~ mod_type) +
+  labs(x = 'Observed',
+       y = 'Predicted',
+       color = 'Log Net Error Rate',
+       title = 'Total Redds')
+```
+
+# Discussion
+
+For both ground- and air-based surveys, across all three types of models, the best AICc model predictions and the model averaged predictions were very similar, so although I didn't include model averaged predictions in my comparisons, I expect them to be very similar to the best model. I chose to use the best AICc model because it would be simplier.
+
+Models for both types of surveys tended to provide unbiased predictions of the number of redds in the stream. Ground-based surveys required slightly less of an adjustment (in either direction) than air-based surveys, but there was certainly an adjustment in both cases, highlighting the need for such observer error models. The median absolute bias for both types of surveys and for both modeling approaches was less than one redd, compared to an undercount of 2 redds for ground-based surveys, and 6 for air-based surveys.
+
+For the ground-based surveys, the most important covariates to explain net error were observed redd density and observer experience, whereas most of the possible covariates had similar importance for omission and commission models. However, the predictions of total redds are almost identical regardless of whether one uses the net error or omission / commission models, or the best model by AICc, or the naive model (only random effects). This suggests that the fixed effects covariates included in this study are not explaining much of the variation in error rates, but that there is information in the random effects of reach and surveyor sufficient to make unbiased predictions. However, those random effects cannot be easily carried on to another study area, or even another year, which limits their usefulness as a predictive model. 
+
+For the air-based surveys, AveSunny figured prominently in net error and commmission models, whereas observed redd density was clearly the most important for explaining omission errors. The net error and omission / commission models, either the best AICc or the naive versions, all made very similar unbiased predictions, although they appear to slightly under-predict at higher number of redds. 
+
+The fact that the predictions from the naive model (random effects only) are highly correlated with the best and model averaged versions for all the various error models, except for net errors for air surveys, suggests that the fixed effects are not explaining much of the observed variation in error rates. This is also seen in `r fig_nums(name = 'r2_fig_g', display = 'c')` and `r fig_nums(name = 'r2_fig_a', display = 'c')`. The root mean squared error (RMSE) of predictions is slightly smaller when using the best AICc model compared to the naive model, so there is some benefit to those fixed effects. 
+
+
+# References

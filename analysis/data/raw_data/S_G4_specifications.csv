@@ -1,0 +1,24 @@
+VarCategory,VarDescription,VarName,Note,EffectType,Ground,Air,Validn,Sightability,M1,M2,M3,M5,M6,M13,M17,M20,M21
+,Surveyor,Surveyor,,Random,Yes,Yes,Yes,Yes,1,1,1,1,1,1,1,1,1
+,Year ,Year,,Random,,,,,,,,,,,,1,
+,Reach,Reach,,Random,Yes,Yes,Yes,Yes,1,1,1,1,1,1,1,1,1
+Environment,Stream width,AveWidth,,Fixed,Yes,Yes,Yes,Yes,1,1,1,,,,1,,
+Environment,Stream depth,AveDepth,,Fixed,Yes,Yes,Yes,Yes,1,1,1,,,,1,,
+Environment,Reach gradient,Slope,,Fixed,Yes,Yes,Yes,Yes,1,1,1,,,,1,,
+Environment,Overhead canopy cover,AveCanopy,,Fixed,Yes,Yes,Yes,Yes,1,,,,1,,,,
+Environment,Current year peak flow at MF gauge,PeakQ,Confounded w Year,Fixed,Yes,Yes,Yes,Yes,1,,,1,,,,,
+Environment,Density of “others”,OthrDens,,Fixed,Yes,Yes,Yes,,,,,,,,,,
+Environment,Last year’s aerial count,LYabund,Confounded w Year,Fixed,Yes,Yes,Yes,Yes,1,,,1,,,,,
+Environment,Percent of redds in the sun (air only),AveSunny,,Fixed,,Yes,Yes,,,,,,,,,,
+Surveyor,Experience level (ground only),ExperienceCat,,Fixed,Yes,,Yes,Yes,1,,,,,1,1,,
+Redd,Contrast with substrate,AveContrast,,Fixed,Yes,Yes,Yes,,,,,,,,,,
+Redd,Avg nearest neighbor distance,ANNDist,,Fixed,,,,,,,,,,,,,
+Redd,Density of redds (current year),redd_dens,,Fixed,Yes,Yes,Yes,,,,,,,,,,
+Redd,Observed Density of redds (current year),redd_dens_obs,,Fixed,Yes,Yes,,Yes,1,,,,,,,,1
+Redd,Overlap with other redds,AveOverlap,,Fixed,Yes,Yes,Yes,,,,,,,,,,
+Redd,Age,AveAge,,Fixed,Yes,Yes,Yes,,,,,,,,,,
+Interaction,Last year's redds (aerial count) visible,LYabund*PeakQ," Confounded w Year, Always include interaction b/c that's where we believe true effect is.",Fixed,Yes,Yes,Yes,Yes,1,,,1,,,,,
+Environment,Poor survey conditions (air only),AveBadCond,If there is an effect here consider removing records from dataset where AveBadCond=yes,Fixed,,Yes,Yes,Yes,,,,,,,,,
+Redd,IDFG Escapement Estimate for MFSR ,EscapeEst,Confounded w Year. EscapeEst as surrogate for redd_density when density and clustering of true redds unknown,Fixed,Yes,Yes,,Yes,1,,,,,,,,
+Environment,Log transformed ANNDist,log(ANNDist),Use log because range is very large.,Fixed,Yes,Yes,Yes,,,,,,,,,,
+Environment,Stream depth x^2,AveDepth*AveDepth,"Expect threshold effect - at certain depth, omissions increase dramatically",Fixed,Yes,Yes,Yes,Yes,1,1,,,,,1,,
