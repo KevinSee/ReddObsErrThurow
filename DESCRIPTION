@@ -1,12 +1,12 @@
 Package: ReddObsErrThurow
-Title: What the Package Does (One Line, Title Case)
+Title: Redd Observer Error Study
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "Kevin",
+           family = "See",
            role = c("aut", "cre"),
-           email = "first.last@example.com")
-Description: What the package does (one paragraph).
+           email = "kevin.see@merck.com")
+Description: Contains data and analyses for manuscripts related to redd observer error study conducted by Russ Thurow in the Middle Fork River in Idaho.
 License: CC BY 4.0
 ByteCompile: true
 Encoding: UTF-8
