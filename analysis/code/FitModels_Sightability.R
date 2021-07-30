@@ -6,10 +6,12 @@
 
 #----------------------------------------------------------------
 library(tidyverse)
+library(readxl)
 library(magrittr)
 library(lme4)
 library(MuMIn)
 library(caret)
+library(here)
 
 theme_set(theme_bw())
 
@@ -28,6 +30,14 @@ raw_data = read_csv('analysis/data/raw_data/reach_data.csv') %>%
          CommisRate = CommitReachCt / obs_cnt,
          NetError = frxn_true,
          log_NetError = log(frxn_true))
+
+# add some lithology data
+raw_data %<>%
+  left_join(read_excel(here("analysis/data/raw_data/Lithology of Redd Detection Study Reaches_Actual Final.xlsx"),
+                       "RchData") %>%
+              mutate(across(c(Lith, Alluvium),
+                            as_factor)),
+            by = "Reach")
 
 #----------------------------------------------------------------
 # model for errors of ommision (what proportion of redds were missed by surveyor?)
@@ -105,8 +115,8 @@ raw_data %>%
 #------------------------------
 # get means and standard deviations of each covariate
 covar_center = raw_data %>%
-  select(one_of(unique(all_mod_specs$VarName[all_mod_specs$EffectType == 'Fixed'])),
-         -Experience3) %>%
+  select(one_of(unique(all_mod_specs$VarName[all_mod_specs$EffectType == 'Fixed']))) %>%
+  select(-where(is.factor)) %>%
   gather(variable, value) %>%
   group_by(variable) %>%
   summarise_at(vars(value),
