@@ -1,7 +1,7 @@
 # Author: Kevin See
 # Purpose: Fit a variety of models for redd sightability (ground) study
 # Created: 4/29/2016
-# Last Modified: 2/3/2020
+# Last Modified: 7/30/2021
 # Notes: This is a collaboration with Claire McGrath
 
 #----------------------------------------------------------------
@@ -30,6 +30,13 @@ raw_data = read_csv('analysis/data/raw_data/reach_data.csv') %>%
          CommisRate = CommitReachCt / obs_cnt,
          NetError = frxn_true,
          log_NetError = log(frxn_true))
+
+# # should we combine 2 of the experience categories into 1?
+# raw_data %<>%
+#   mutate(ExperienceCat = fct_recode(ExperienceCat,
+#                                     'A' = "C"),
+#          Experience3 = fct_recode(Experience3,
+#                                   "1" = "2"))
 
 # add some lithology data
 raw_data %<>%
