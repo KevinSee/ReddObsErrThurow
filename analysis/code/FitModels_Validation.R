@@ -1,7 +1,7 @@
 # Author: Kevin See
 # Purpose: Fit a variety of models for redd validation study
 # Created: 4/29/2016
-# Last Modified: 3/2/2020
+# Last Modified: 9/22/2021
 # Notes: This is a collaboration with Claire McGrath
 
 #----------------------------------------------------------------
@@ -10,12 +10,14 @@ library(magrittr)
 library(lme4)
 library(MuMIn)
 library(caret)
+library(readxl)
+library(here)
 
 theme_set(theme_bw())
 
 #----------------------------------------------------------------
 # read in data
-raw_data = read_csv('analysis/data/raw_data/reach_data.csv') %>%
+raw_data = read_csv(here('analysis/data/raw_data/reach_data.csv')) %>%
   select(-X1) %>%
   mutate(id = 1:n()) %>%
   select(Year, Reach, Survey, id, everything()) %>%
@@ -34,30 +36,44 @@ raw_data = read_csv('analysis/data/raw_data/reach_data.csv') %>%
          NetError = obs_cnt / TrueReachCt,
          log_NetError = log(NetError))
 
+# add some lithology data
+raw_data %<>%
+  left_join(read_excel(here("analysis/data/raw_data/Lithology of Redd Detection Study Reaches_Actual Final.xlsx"),
+                       "RchData") %>%
+              mutate(across(c(Lith, Alluvium),
+                            as_factor)) %>%
+              rename(Lithology = Lith),
+            by = "Reach")
+
 #----------------------------------------------------------------
 # model for errors of ommision (what proportion of redds were missed by surveyor?)
 # Ground surveys
 #----------------------------------------------------------------
 # pull in possible model covariates
-all_mod_specs = read_csv('analysis/data/raw_data/V_A1_specifications.csv') %>%
-  mutate(Resp = 'Omi') %>%
-  bind_rows(read_csv('analysis/data/raw_data/V_A2_specifications.csv') %>%
+# mod_file_folder = here('analysis/data/raw_data/')
+mod_file_folder = here('analysis/data/raw_data/model_files_20210730/')
+
+all_mod_specs = read_csv(paste0(mod_file_folder, 'V_A1_specifications.csv')) %>%
+    mutate(Resp = 'Omi') %>%
+  bind_rows(read_csv(paste0(mod_file_folder, 'V_A2_specifications.csv')) %>%
               mutate(Resp = 'Com')) %>%
-  bind_rows(read_csv('analysis/data/raw_data/V_A3_specifications.csv') %>%
+  bind_rows(read_csv(paste0(mod_file_folder, 'V_A3_specifications.csv')) %>%
               mutate(Resp = 'Net')) %>%
   select(EffectType, Resp, VarName, matches('^M')) %>%
-  gather(Model, Incl, -(EffectType:VarName)) %>%
+  pivot_longer(starts_with("M"),
+               names_to = "Model",
+               values_to = "Incl") %>%
   mutate(VarName = recode(VarName,
                           'AveDepth*AveDepth' = 'I(AveDepth^2)',
                           'LYabund*PeakQ' = 'LYabund:PeakQ',
                           'ExperienceCat' = 'Experience3')) %>%
   filter(!is.na(Incl)) %>%
   mutate(Survey = 'Air') %>%
-  bind_rows(read_csv('analysis/data/raw_data/V_G2_specifications.csv') %>%
+  bind_rows(read_csv(paste0(mod_file_folder, 'V_G2_specifications.csv')) %>%
               mutate(Resp = 'Omi') %>%
-              bind_rows(read_csv('analysis/data/raw_data/V_G3_specifications.csv') %>%
+              bind_rows(read_csv(paste0(mod_file_folder, 'V_G3_specifications.csv')) %>%
                           mutate(Resp = 'Com')) %>%
-              bind_rows(read_csv('analysis/data/raw_data/V_G4_specifications.csv') %>%
+              bind_rows(read_csv(paste0(mod_file_folder, 'V_G4_specifications.csv')) %>%
                           mutate(Resp = 'Net')) %>%
               select(EffectType, Resp, VarName, matches('^M')) %>%
               gather(Model, Incl, -(EffectType:VarName)) %>%
@@ -68,10 +84,13 @@ all_mod_specs = read_csv('analysis/data/raw_data/V_A1_specifications.csv') %>%
               filter(!is.na(Incl)) %>%
               mutate(Survey = 'Ground')) %>%
   select(-EffectType) %>%
-  spread(VarName, Incl) %>%
+  pivot_wider(names_from = VarName,
+              values_from = Incl) %>%
   arrange(Survey, Resp, Model) %>%
   mutate(Year = 1) %>%
-  gather(VarName, Incl, -(Resp:Survey)) %>%
+  pivot_longer(-(Resp:Survey),
+               names_to = "VarName",
+               values_to = "Incl") %>%
   filter(!is.na(Incl)) %>%
   mutate(EffectType = ifelse(VarName %in% c('Reach', 'Year', 'Surveyor'), 'Random', 'Fixed')) %>%
   mutate(Model = factor(Model, levels = paste0('M', 1:20))) %>%
@@ -117,9 +136,8 @@ raw_data %>%
 #------------------------------
 # get means and standard deviations of each covariate
 covar_center = raw_data %>%
-  select(one_of(unique(all_mod_specs$VarName[all_mod_specs$EffectType == 'Fixed'])),
-         ANNDist,
-         -starts_with("Experience")) %>%
+  select(one_of(unique(all_mod_specs$VarName[all_mod_specs$EffectType == 'Fixed']))) %>%
+  select(-where(is.factor)) %>%
   gather(variable, value) %>%
   group_by(variable) %>%
   summarise_at(vars(value),
@@ -351,8 +369,8 @@ mod_sel = mod_fits %>%
 
 
 # how many cross validation folds (training datasets) shall we make?
-n_folds = 5
-set.seed(6)
+n_folds = 10
+set.seed(3)
 loocv_df = mod_data %>%
   group_by(Survey) %>%
   nest() %>%
@@ -435,4 +453,4 @@ save(raw_data,
      mod_sel,
      n_folds,
      loocv_df,
-     file = 'analysis/modelResults/fits_validation.rda')
+     file = here('analysis/data/derived_data/fits_validation.rda'))

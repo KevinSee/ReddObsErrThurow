@@ -29,15 +29,17 @@ bibliography: references.bib
 
 ```{r intro_prep, message=F, warning=F, results='hide', echo = F}
 library(knitr)
+library(here)
 library(captioner)
 library(pander)
+
 knitr::opts_chunk$set(
   collapse = TRUE,
   warning = FALSE,
   message = FALSE,
   echo = FALSE,
   comment = "#>",
-  fig.path = "../figures/validation/",
+  fig.path = here("analysis/figures/validation/"),
   dpi = 300
 )
 
@@ -178,7 +180,7 @@ theme_update(panel.grid = element_blank())
 
 #----------------------------------------------------------------
 # load data and model fits
-load('../code/modelResults/fits_validation.rda')
+load(here('analysis/data/derived_data/fits_validation.rda'))
 
 # relative importance of each variable
 rel_imp_df = mod_fits %>%

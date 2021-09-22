@@ -6,7 +6,7 @@ author:
   - name: Claire McGrath^[Natural Resources Specialist, Columbia Hydropower Branch at NOAA Fisheries, West Coast Region, riverbio@yahoo.com]
   - name: Russ Thurow^[USDA Forest Service Rocky Mountain Research Station]
 output: 
-  html_document:
+  bookdown::html_document2:
     fig_caption: yes
     fig_height: 8
     fig_width: 8
@@ -16,37 +16,28 @@ output:
       collapsed: true
       smooth_scroll: true
     toc_depth: 3
-  prettydoc::html_pretty:
-    theme: tactile
-    fig_caption: yes
-    fig_height: 8
-    fig_width: 8
-    toc: true
-    toc_depth: 3
 csl: "../templates/canadian-journal-of-fisheries-and-aquatic-sciences.csl" # Insert path for the bib-style
 bibliography: references.bib
 ---
 
 ```{r intro_prep, message=F, warning=F, results='hide', echo = F}
 library(knitr)
-library(captioner)
-library(pander)
+library(kableExtra)
+library(here)
+
+# set some options
 knitr::opts_chunk$set(
   collapse = TRUE,
   warning = FALSE,
   message = FALSE,
   echo = FALSE,
   comment = "#>",
-  fig.path = "../figures/sightability/",
+  fig.path = here("analysis/figures/sightability/"),
   dpi = 300
 )
 
-table_nums = captioner(prefix = 'Table')
-fig_nums = captioner()
+options(knitr.kable.NA = "-")
 
-options(knitr.kable.NA = '-')
-
-# setwd('analysis')
 ```
 
 ### Collaborators
@@ -58,100 +49,6 @@ _Natural Resources Specialist, Columbia Hydropower Branch at NOAA Fisheries, Wes
 
 __Kevin See__
 _Biometrician, Biomark Inc, Boise, ID, Kevin.See@merck.com_
-
-
-```{r list_table_figures}
-covar_tab = table_nums(name = 'covar_tab', 
-                          caption = 'Possible covariates included in each observer error model.')
-
-obs_rates_fig = fig_nums(name = 'obs_rates_fig',
-                         caption = 'Observed error rates.')
-
-mod_coef = table_nums(name = 'mod_coef',
-                      caption = 'Estimated coefficients for various observer error models.')
-
-rel_imp_fig_g = fig_nums(name = 'rel_imp_fig_g',
-                    caption = "Relative importance of each covariate in ground-based observer error models")
-
-r2_fig_g = fig_nums(name = 'r2_fig_g',
-                    caption = 'How much variance in the model response is explained by the fixed and random effects in the best AICc model.')
-
-obs_pred_omi_g = fig_nums(name = 'obs_pred_omi_g',
-                          caption = 'Observed versus predicted rates of omission using model averaged predictions, the single best model, and the naive model (only random effects).')
-
-pred_corr_omi_g = fig_nums(name = 'pred_corr_omi_g',
-                           caption = 'Correlations between observed omission rates and three model predictions (model averaged, single best and naive).')
-
-obs_pred_com_g = fig_nums(name = 'obs_pred_com_g',
-                          caption = 'Observed versus predicted rates of commission using model averaged predictions, the single best model, and the naive model (only random effects).')
-
-pred_corr_com_g = fig_nums(name = 'pred_corr_com_g',
-                           caption = 'Correlations between observed commission rates and three model predictions (model averaged, single best and naive).')
-
-obs_pred_net_g = fig_nums(name = 'obs_pred_net_g',
-                          caption = 'Observed versus predicted rates of net error using model averaged predictions, the single best model, and the naive model (only random effects).')
-
-pred_corr_net_g = fig_nums(name = 'pred_corr_net_g',
-                           caption = 'Correlations between observed net error rates and three model predictions (model averaged, single best and naive).')
-
-# redd_est_g = fig_nums(name = 'redd_est_g',
-#                       caption = 'Observed number of true redds vs. predicted redds based on either the net error or omission/commission models. Dashed line is the 1-1 line, while solid line with gray error ribbon is the best fit linear model to these data.')
-
-grnd_bias_fig = fig_nums(name = 'grnd_bias_fig', 
-                          caption = 'Boxplots of absolute and relative bias for each type of predictive model.')
-
-redd_cv_g = fig_nums(name = 'redd_cv_g',
-                      caption = 'Observed number of true redds vs. leave-one-out cross validated predicted redds based on either the best AICc or naive versions of the net error or omission/commission models. Dashed line is the 1-1 line, while solid line with gray error ribbon is the best fit linear model to these data.')
-
-# grnd_pred_tab = table_nums(name = 'grnd_pred_tab', 
-#                           caption = 'Summary statistics of predictions of total redds using the net error and the omission/commission models.')
-
-grnd_cv_tab = table_nums(name = 'grnd_cv_tab', 
-                          caption = 'Summary statistics of predictions of total redds from leave-one-out cross validation using the net error and the omission/commission models.')
-
-
-rel_imp_fig_a = fig_nums(name = 'rel_imp_fig_a',
-                    caption = "Relative importance of each covariate in ground-based observer error models")
-
-r2_fig_a = fig_nums(name = 'r2_fig_a',
-                    caption = 'How much variance in the model response is explained by the fixed and random effects in the best AICc model.')
-
-
-obs_pred_omi_a = fig_nums(name = 'obs_pred_omi_a',
-                          caption = 'Observed versus predicted rates of omission using model averaged predictions, the single best model, and the naive model (only random effects).')
-
-pred_corr_omi_a = fig_nums(name = 'pred_corr_omi_a',
-                           caption = 'Correlations between observed omission rates and three model predictions (model averaged, single best and naive).')
-
-obs_pred_com_a = fig_nums(name = 'obs_pred_com_a',
-                          caption = 'Observed versus predicted rates of commission using model averaged predictions, the single best model, and the naive model (only random effects).')
-
-pred_corr_com_a = fig_nums(name = 'pred_corr_com_a',
-                           caption = 'Correlations between observed commission rates and three model predictions (model averaged, single best and naive).')
-
-obs_pred_net_a = fig_nums(name = 'obs_pred_net_a',
-                          caption = 'Observed versus predicted rates of net error using model averaged predictions, the single best model, and the naive model (only random effects).')
-
-pred_corr_net_a = fig_nums(name = 'pred_corr_net_a',
-                           caption = 'Correlations between observed net error rates and three model predictions (model averaged, single best and naive).')
-
-# redd_est_a = fig_nums(name = 'redd_est_a',
-#                       caption = 'Observed number of true redds vs. predicted redds based on either the net error or omission/commission models. Dashed line is the 1-1 line, while solid line with gray error ribbon is the best fit linear model to these data.')
-
-air_bias_fig = fig_nums(name = 'air_bias_fig', 
-                          caption = 'Boxplots of absolute and relative bias for each type of predictive model.')
-
-redd_cv_a = fig_nums(name = 'redd_cv_a',
-                      caption = 'Observed number of true redds vs. leave-one-out cross validated predicted redds based on either the best AICc or naive versions of the net error or omission/commission models. Dashed line is the 1-1 line, while solid line with gray error ribbon is the best fit linear model to these data.')
-
-# air_pred_tab = table_nums(name = 'air_pred_tab', 
-#                           caption = 'Summary statistics of predictions of total redds using the net error and the omission/commission models.')
-
-air_cv_tab = table_nums(name = 'air_cv_tab', 
-                          caption = 'Summary statistics of predictions of total redds from leave-one-out cross validation using the net error and the omission/commission models.')
-
-```
-
 
 # Goals
 
@@ -170,6 +67,7 @@ library(magrittr)
 library(lme4)
 library(MuMIn)
 library(GGally)
+library(here)
 # library(corrplot)
 # library(gridExtra)
 
@@ -178,7 +76,7 @@ theme_update(panel.grid = element_blank())
 
 #----------------------------------------------------------------
 # load data and model fits
-load('../code/modelResults/fits_sightability.rda')
+load(here('analysis/data/derived_data/fits_sightability.rda'))
 
 # relative importance of each variable
 rel_imp_df = mod_fits %>%
@@ -740,10 +638,9 @@ cv_df_a = air_data %>%
 
 ```
 
-Possible covariates in each error model are shown in `r table_nums('covar_tab', display = 'c')`. To make comparisons with AICc, the random effects must be identical across all models. Therefore, we ensured that the random effect of year was added to any model that didn't have it. 
+Possible covariates in each error model are shown in Table \@ref(tab:covariates-tab). To make comparisons with AICc, the random effects must be identical across all models. Therefore, we ensured that the random effect of year was added to any model that didn't have it. 
 
-`r table_nums('covar_tab', display = 'f')`
-```{r covariates_tab}
+```{r covariates-tab}
 # table of which covariates are in at least one model
 all_mod_specs %>%
   mutate(grp = paste(Survey, Resp, sep= '_'),
@@ -752,13 +649,16 @@ all_mod_specs %>%
   distinct() %>%
   spread(Survey, Incl, fill = '') %>%
   arrange(desc(Type), Covariate) %>%
-  kable()
+  kbl(booktaps = T,
+      linesep = "",
+      caption = 'Possible covariates included in each observer error model.') %>%
+  kable_styling()
 
 ```
 
 All covariates were z-scored, and all models were fit using the *glmer* or *lmer* functions from the lme4 package [@Bates2015] in R software [@Rsoftware2019]. The amount of variation explained by fixed and random effects was calculated using the methods of @Nakagawa2013. Using estimated predictions of the rates for omission ($\hat{\omega}$), commission ($\hat{\eta}$) and net error ($\hat{\gamma}$), we predicted the number of actual redds by either dividing the observed counts, $c$, by estimates of net error, or by multiplying the observed counts by 1 - estimated rate of commission, and then dividing by 1 - estimated rate of omission.
 
-We performed a cross validation by dividing each survey type data into `r n_folds` training datasets where 20% of the data was withheld for testing, and then fitting the naive and best AICc model formulations to the remaining data, and then using those fits to predict the error rates and true number of redds for each survey in the year that had been withheld. 
+We performed a cross validation by dividing each survey type data into `r n_folds` training datasets where 10% of the data was withheld for testing, and then fitting the naive and best AICc model formulations to the remaining data, and then using those fits to predict the error rates and true number of redds for each survey in the year that had been withheld. 
 
 $$
 \begin{aligned}
@@ -767,9 +667,9 @@ redds_{om} &= c * \frac{1 - \hat{\eta}}{1 - \hat{\omega}}
 \end{aligned}
 $$
 
-The observed error rates are showin in `r fig_nums('obs_rates_fig', display = 'c')`.
+The observed error rates are showin in Figure \@ref(fig:obs-rates-fig).
 
-```{r obs_rates_fig, fig.cap = fig_nums('obs_rates_fig'), fig.height = 5}
+```{r obs-rates-fig, fig.cap = "Observed error rates.", fig.height = 5}
 raw_data %>%
   select(Year:Surveyor, OmisRate, CommisRate, NetError = frxn_true) %>%
   gather(error, value, -(Year:Surveyor)) %>%
@@ -789,33 +689,44 @@ raw_data %>%
 
 ## Model Coefficients
 
-The model coefficients of the full, best (by AICc) and model averaged models are shown in `r table_nums('mod_coef', display = 'c')`.
+The model coefficients of the full, best (by AICc) and model averaged models are shown in Table \@ref(tab:mod-coef-grnd) and \@ref(tab:mod-coef-air).
 
-`r table_nums('mod_coef', display = 'f')`
-```{r coef-tab}
+```{r mod-coef-grnd}
 mod_coef %>%
   select(-`Std. Error`) %>%
-  spread(type, Estimate) %>%
+  pivot_wider(names_from = type,
+              values_from = Estimate) %>%
   filter(Survey == "Ground") %>%
-  kable(digits = 3)
+  kbl(digits = 3,
+      booktabs = T,
+      linesep = "",
+      caption = 'Estimated coefficients for ground observer error models.') %>%
+  kable_styling()
+```
 
+```{r mod-coef-air}
 mod_coef %>%
   select(-`Std. Error`) %>%
-  spread(type, Estimate) %>%
+  pivot_wider(names_from = type,
+              values_from = Estimate) %>%
   filter(Survey == "Air") %>%
-  kable(digits = 3)
+  kbl(digits = 3,
+      # booktabs = T,
+      linesep = "",
+      caption = 'Estimated coefficients for air observer error models.') %>%
+  kable_styling()
 ```
 
 
 ## Ground Surveys
 
-The relative importance of each covariate in each model is shown in `r fig_nums('rel_imp_fig_g', display = 'c')`, while the amount of the variance explained by fixed and random effects in the best AICc model is shown in `r fig_nums('r2_fig_g', display = 'c')`. Observed versus predicted rate plots are shown in Figures `r fig_nums('obs_pred_omi_g', display = 'n')`, `r fig_nums('obs_pred_com_g', display = 'n')` and `r fig_nums('obs_pred_net_g', display = 'n')`. 
+The relative importance of each covariate in each model is shown in Figure \@ref(fig:rel-imp-plot-g), while the amount of the variance explained by fixed and random effects in the best AICc model is shown in Figure \@ref(fig:r2-plot-g). Observed versus predicted rate plots are shown in Figures \@ref(fig:obs-pred-omi-g), \@ref(fig:obs-pred-com-g) and \@ref(fig:obs-pred-net-g). 
 
-```{r rel_imp_plot_g, fig.cap = fig_nums('rel_imp_fig_g'), fig.height = 6}
+```{r rel-imp-plot-g, fig.cap = "Relative importance of each covariate in ground-based observer error models", fig.height = 6}
 print(imp_p_g)
 ```
 
-```{r r2_plot_g, fig.cap = fig_nums('r2_fig_g'), fig.height=6}
+```{r r2-plot-g, fig.cap = 'How much variance in the model response is explained by the fixed and random effects in the best AICc model.', fig.height=6}
 mod_sel %>%
   filter(type == 'best',
          Survey == "Ground") %>%
@@ -842,7 +753,7 @@ mod_sel %>%
 
 ### Omission
 
-```{r omi_obs_pred_plot_g, fig.cap = fig_nums('obs_pred_omi_g'), fig.height = 4}
+```{r obs-pred-omi-g, fig.cap = 'Observed versus predicted rates of omission using model averaged predictions, the single best model, and the naive model (only random effects).', fig.height = 4}
 obs_pred_df %>%
   filter(Survey == 'Ground',
          Resp == 'Omi',
@@ -859,7 +770,7 @@ obs_pred_df %>%
        y = "Predicted")
 ```
 
-```{r omi_pred_corr_plot_g, fig.cap = fig_nums('pred_corr_omi_g')}
+```{r omi-pred-corr-plot-g, fig.cap = 'Correlations between observed omission rates and three model predictions (model averaged, single best and naive).'}
 obs_pred_df %>%
   filter(Survey == 'Ground',
          Resp == 'Omi',
@@ -871,7 +782,7 @@ obs_pred_df %>%
 
 ### Commission
 
-```{r com_obs_pred_plot_g, fig.cap = fig_nums('obs_pred_com_g'), fig.height = 4}
+```{r obs-pred-com-g, fig.cap = 'Observed versus predicted rates of commission using model averaged predictions, the single best model, and the naive model (only random effects).', fig.height = 4}
 obs_pred_df %>%
   filter(Survey == 'Ground',
          Resp == 'Com',
@@ -888,7 +799,7 @@ obs_pred_df %>%
        y = "Predicted")
 ```
 
-```{r com_pred_corr_plot_g, fig.cap = fig_nums('pred_corr_com_g')}
+```{r com-pred-corr-plot-g, fig.cap = 'Correlations between observed commission rates and three model predictions (model averaged, single best and naive).'}
 obs_pred_df %>%
   filter(Survey == 'Ground',
          Resp == 'Com',
@@ -900,7 +811,7 @@ obs_pred_df %>%
 
 ### Net Error
 
-```{r net_obs_pred_plot_g, fig.cap = fig_nums('obs_pred_net_g'), fig.height = 4}
+```{r obs-pred-net-g, fig.cap = 'Observed versus predicted rates of net error using model averaged predictions, the single best model, and the naive model (only random effects).', fig.height = 4}
 obs_pred_df %>%
   filter(Survey == 'Ground',
          Resp == 'Net',
@@ -923,7 +834,7 @@ obs_pred_df %>%
        y = "Predicted")
 ```
 
-```{r net_pred_corr_plot_g, fig.cap = fig_nums('pred_corr_net_g')}
+```{r pred-corr-net-g, fig.cap = 'Correlations between observed net error rates and three model predictions (model averaged, single best and naive).'}
 obs_pred_df %>%
   filter(Survey == 'Ground',
          Resp == 'Net',
@@ -937,9 +848,9 @@ obs_pred_df %>%
 
 #### Rate Estimates
 
-We examined the bias in estimates rates, using both the best (by AICc) model and the naive model (only random effects).
+We examined the bias in estimates rates, using both the best (by AICc) model and the naive model (only random effects) (Figure \@ref(fig:loocv-rate-g)).
 
-```{r}
+```{r loocv-rate-g, fig.cap = "Bias in predicted ground error rates from cross validation results."}
 loocv_rate %>%
   filter(Survey == "Ground") %>% 
   ggplot(aes(x = Resp,
@@ -959,9 +870,9 @@ loocv_rate %>%
 
 #### Redd Estimates
 
-For ground-based surveys, both methods provided fairly unbiased estimates of the true number of redds (`r fig_nums('grnd_bias_fig', display = 'c')`), although the omission/commision models had slightly higher absolute and relative bias (`r table_nums('grnd_cv_tab', display = 'c')`). 
+For ground-based surveys, both methods provided fairly unbiased estimates of the true number of redds (Figure \@ref(fig:grnd-bias-fig)), although the omission/commision models had slightly higher absolute and relative bias (Table \@ref(tab:grnd-cv-tab)). 
 
-```{r grnd_bias_plot, fig.cap = fig_nums('grnd_bias_fig'), fig.height = 5}
+```{r grnd-bias-fig, fig.cap = 'Boxplots of absolute and relative bias for each type of predictive model.', fig.height = 5}
 loocv_redds %>%
   filter(Survey == "Ground") %>%
   ggplot(aes(x = Resp,
@@ -979,8 +890,7 @@ loocv_redds %>%
        x = 'Method')
 ```
 
-`r table_nums('grnd_cv_tab', display = 'f')`
-```{r cv_pred_tab_g}
+```{r grnd-cv-tab}
 loocv_redds %>%
   filter(Survey == "Ground") %>%
   distinct() %>%
@@ -1000,12 +910,16 @@ loocv_redds %>%
             mean_abs_bias = median(`Absolute Bias`),
             mean_rel_bias = median(`Relative Bias`) * 100,
             RMSE = sqrt(mean(`Absolute Bias`^2))) %>%
-  kable(digits = 1,
-        col.names = c('Model', 'Median # Obs. Redds', 'Median # True Redds', 'Median Adjustment', 
-        'Median Abs. Bias', 'Median Rel. Bias (%)', 'RMSE'))
+  kbl(digits = 1,
+      col.names = c('Model', 'Median # Obs. Redds', 'Median # True Redds', 'Median Adjustment', 
+                    'Median Abs. Bias', 'Median Rel. Bias (%)', 'RMSE'),
+      # booktabs = T,
+      linesep = "",
+      caption = 'Summary statistics of predictions of total redds from leave-one-out cross validation using the net error and the omission/commission models.') %>%
+  kable_styling()
 ```
 
-```{r cv_pred_fig_g, fig.cap = fig_nums('redd_cv_g')}
+```{r redd-cv-g, fig.cap = 'Observed number of true redds vs. leave-one-out cross validated predicted redds based on either the best AICc or naive versions of the net error or omission/commission models. Dashed line is the 1-1 line, while solid line with gray error ribbon is the best fit linear model to these data.'}
 loocv_redds %>%
   filter(Survey == "Ground",
          bias_type == 'Absolute Bias',
@@ -1041,14 +955,14 @@ loocv_redds %>%
 
 ## Air Surveys
 
-The relative importance of each covariate in each model is shown in `r fig_nums('rel_imp_fig_a', display = 'c')`, while the amount of the variance explained by fixed and random effects in the best AICc model is shown in `r fig_nums('r2_fig_a', display = 'c')`. Observed versus predicted rate plots are shown in Figures `r fig_nums('obs_pred_omi_a', display = 'n')`, `r fig_nums('obs_pred_com_a', display = 'n')` and `r fig_nums('obs_pred_net_a', display = 'n')`. 
+The relative importance of each covariate in each model is shown in Figures \@ref(fig:rel-imp-plot-a), while the amount of the variance explained by fixed and random effects in the best AICc model is shown in Figure \@ref(fig:r2-plot-a). Observed versus predicted rate plots are shown in Figures \@ref(fig:obs-pred-omi-a), \@ref(fig:obs-pred-com-a) and \@ref(fig:obs-pred-net-a). 
 
 
-```{r rel_imp_plot_a, fig.cap = fig_nums('rel_imp_fig_a'), fig.height = 6}
+```{r rel-imp-plot-a, fig.cap = "Relative importance of each covariate in ground-based observer error models", fig.height = 6}
 print(imp_p_a)
 ```
 
-```{r r2_plot_a, fig.cap = fig_nums('r2_fig_a'), fig.height=6}
+```{r r2-plot-a, fig.cap = 'How much variance in the model response is explained by the fixed and random effects in the best AICc model.', fig.height=6}
 mod_sel %>%
   filter(type == 'best',
          Survey == "Air") %>%
@@ -1075,7 +989,7 @@ mod_sel %>%
 
 ### Omission
 
-```{r omi_obs_pred_plot_a, fig.cap = fig_nums('obs_pred_omi_a'), fig.height = 4}
+```{r obs-pred-omi-a, fig.cap = 'Observed versus predicted rates of omission using model averaged predictions, the single best model, and the naive model (only random effects).', fig.height = 4}
 obs_pred_df %>%
   filter(Survey == 'Air',
          Resp == 'Omi',
@@ -1092,7 +1006,7 @@ obs_pred_df %>%
        y = "Predicted")
 ```
 
-```{r omi_pred_corr_plot_a, fig.cap = fig_nums('pred_corr_omi_a')}
+```{r omi-pred-corr-plot-a, fig.cap = 'Correlations between observed omission rates and three model predictions (model averaged, single best and naive).'}
 obs_pred_df %>%
   filter(Survey == 'Air',
          Resp == 'Omi',
@@ -1105,7 +1019,7 @@ obs_pred_df %>%
 
 ### Commission
 
-```{r com_obs_pred_plot_a, fig.cap = fig_nums('obs_pred_com_a'), fig.height = 4}
+```{r obs-pred-com-a, fig.cap = 'Observed versus predicted rates of commission using model averaged predictions, the single best model, and the naive model (only random effects).', fig.height = 4}
 obs_pred_df %>%
   filter(Survey == 'Air',
          Resp == 'Com',
@@ -1122,7 +1036,7 @@ obs_pred_df %>%
        y = "Predicted")
 ```
 
-```{r com_pred_corr_plot_a, fig.cap = fig_nums('pred_corr_com_a')}
+```{r com-pred-corr-plot-a, fig.cap = 'Correlations between observed commission rates and three model predictions (model averaged, single best and naive).'}
 obs_pred_df %>%
   filter(Survey == 'Air',
          Resp == 'Com',
@@ -1135,7 +1049,7 @@ obs_pred_df %>%
 
 ### Net Error
 
-```{r net_obs_pred_plot_a, fig.cap = fig_nums('obs_pred_net_a'), fig.height = 4}
+```{r obs-pred-net-a, fig.cap = 'Observed versus predicted rates of net error using model averaged predictions, the single best model, and the naive model (only random effects).', fig.height = 4}
 obs_pred_df %>%
   filter(Survey == 'Air',
          Resp == 'Net',
@@ -1158,7 +1072,7 @@ obs_pred_df %>%
        y = "Predicted")
 ```
 
-```{r net_pred_corr_plot_a, fig.cap = fig_nums('pred_corr_net_a')}
+```{r net-pred-corr-plot-a, fig.cap = 'Correlations between observed net error rates and three model predictions (model averaged, single best and naive).'}
 obs_pred_df %>%
   filter(Survey == 'Air',
          Resp == 'Net',
@@ -1173,9 +1087,9 @@ obs_pred_df %>%
 
 #### Rate Estimates
 
-We examined the bias in estimates rates, using both the best (by AICc) model and the naive model (only random effects).
+We examined the bias in estimates rates, using both the best (by AICc) model and the naive model (only random effects) (Figure \@ref(fig:loocv-rate-a)).
 
-```{r}
+```{r loocv-rate-a, fig.cap = "Bias in predicted air error rates from cross validation results."}
 loocv_rate %>%
   filter(Survey == "Air") %>% 
   ggplot(aes(x = Resp,
@@ -1195,9 +1109,9 @@ loocv_rate %>%
 
 #### Redd Estimates
 
-For air-based surveys, both methods provided estimates of the true number of redds that were biased high (`r fig_nums('air_bias_fig', display = 'c')`). However, the net error models had lower absolute and relative bias, as well as a smaller root squared mean error (RMSE) (`r table_nums('air_cv_tab', display = 'c')`). 
+For air-based surveys, both methods provided estimates of the true number of redds that were biased high (Figure \@ref(fig:air-bias-plot)). However, the net error models had lower absolute and relative bias, as well as a smaller root squared mean error (RMSE) (Table \@ref(tab:air-cv-tab)). 
 
-```{r air_bias_plot, fig.cap = fig_nums('air_bias_fig'), fig.height = 5}
+```{r air-bias-plot, fig.cap = 'Boxplots of absolute and relative bias for each type of predictive model.', fig.height = 5}
 loocv_redds %>%
   filter(Survey == "Air") %>%
   ggplot(aes(x = Resp,
@@ -1216,8 +1130,7 @@ loocv_redds %>%
 
 ```
 
-`r table_nums('air_cv_tab', display = 'f')`
-```{r cv_pred_tab_a}
+```{r cv-pred-tab-a}
 loocv_redds %>%
   filter(Survey == "Air") %>%
   distinct() %>%
@@ -1237,13 +1150,17 @@ loocv_redds %>%
             mean_abs_bias = median(`Absolute Bias`),
             mean_rel_bias = median(`Relative Bias`) * 100,
             RMSE = sqrt(mean(`Absolute Bias`^2))) %>%
-  kable(digits = 1,
-        col.names = c('Model', 'Median # Obs. Redds', 'Median # True Redds', 'Median Adjustment', 
-                      'Median Abs. Bias', 'Median Rel. Bias (%)', 'RMSE'))
+  kbl(digits = 1,
+      col.names = c('Model', 'Median # Obs. Redds', 'Median # True Redds', 'Median Adjustment', 
+                    'Median Abs. Bias', 'Median Rel. Bias (%)', 'RMSE'),
+      # booktabs = T,
+      linesep = "",
+      caption = 'Summary statistics of predictions of total redds from leave-one-out cross validation using the net error and the omission/commission models.') %>%
+  kable_styling()
 
 ```
 
-```{r cv_pred_fig_a, fig.cap = fig_nums('redd_cv_a')}
+```{r cv-pred-fig-a, fig.cap = 'Observed number of true redds vs. leave-one-out cross validated predicted redds based on either the best AICc or naive versions of the net error or omission/commission models. Dashed line is the 1-1 line, while solid line with gray error ribbon is the best fit linear model to these data.'}
 loocv_redds %>%
   filter(Survey == "Air",
          bias_type == 'Absolute Bias',
@@ -1284,9 +1201,9 @@ Models for both types of surveys tended to provide unbiased predictions of the n
 
 For the ground-based surveys, the most important covariates to explain net error were observed redd density and observer experience, whereas most of the possible covariates had similar importance for omission and commission models. However, the predictions of total redds are almost identical regardless of whether one uses the net error or omission / commission models, or the best model by AICc, or the naive model (only random effects). This suggests that the fixed effects covariates included in this study are not explaining much of the variation in error rates, but that there is information in the random effects of reach and surveyor sufficient to make unbiased predictions. However, those random effects cannot be easily carried on to another study area, or even another year, which limits their usefulness as a predictive model. 
 
-For the air-based surveys, AveSunny figured prominently in net error and commmission models, whereas observed redd density was clearly the most important for explaining omission errors. The net error and omission / commission models, either the best AICc or the naive versions, all made very similar unbiased predictions, although they appear to slightly under-predict at higher number of redds. 
+For the air-based surveys, AveSunny figured prominently in net error and commission models, whereas observed redd density was clearly the most important for explaining omission errors. The net error and omission / commission models, either the best AICc or the naive versions, all made very similar unbiased predictions, although they appear to slightly under-predict at higher number of redds. 
 
-The fact that the predictions from the naive model (random effects only) are highly correlated with the best and model averaged versions for all the various error models, except for net errors for air surveys, suggests that the fixed effects are not explaining much of the observed variation in error rates. This is also seen in `r fig_nums(name = 'r2_fig_g', display = 'c')` and `r fig_nums(name = 'r2_fig_a', display = 'c')`. The root mean squared error (RMSE) of predictions is slightly smaller when using the best AICc model compared to the naive model, so there is some benefit to those fixed effects. 
+The fact that the predictions from the naive model (random effects only) are highly correlated with the best and model averaged versions for all the various error models, except for net errors for air surveys, suggests that the fixed effects are not explaining much of the observed variation in error rates. This is also seen in Figure \@ref(fig:r2-plot-g) and \@ref(fig:r2-plot-a). The root mean squared error (RMSE) of predictions is slightly smaller when using the best AICc model compared to the naive model, so there is some benefit to those fixed effects. 
 
 
 # References

@@ -17,7 +17,7 @@ theme_set(theme_bw())
 
 #----------------------------------------------------------------
 # read in data
-raw_data = read_csv('analysis/data/raw_data/reach_data.csv') %>%
+raw_data = read_csv(here('analysis/data/raw_data', 'reach_data.csv')) %>%
   select(-X1) %>%
   mutate(id = 1:n()) %>%
   select(Year, Reach, Survey, id, everything()) %>%
@@ -43,7 +43,8 @@ raw_data %<>%
   left_join(read_excel(here("analysis/data/raw_data/Lithology of Redd Detection Study Reaches_Actual Final.xlsx"),
                        "RchData") %>%
               mutate(across(c(Lith, Alluvium),
-                            as_factor)),
+                            as_factor)) %>%
+              rename(Lithology = Lith),
             by = "Reach")
 
 #----------------------------------------------------------------
@@ -51,28 +52,35 @@ raw_data %<>%
 # Ground surveys
 #----------------------------------------------------------------
 # pull in possible model covariates
-all_mod_specs = read_csv('analysis/data/raw_data/S_A1_specifications.csv') %>%
+# mod_file_folder = here('analysis/data/raw_data/')
+mod_file_folder = here('analysis/data/raw_data/model_files_20210730/')
+
+all_mod_specs = read_csv(paste0(mod_file_folder, 'S_A1_specifications.csv')) %>%
   mutate(Resp = 'Omi') %>%
-  bind_rows(read_csv('analysis/data/raw_data/S_A2_specifications.csv') %>%
+  bind_rows(read_csv(paste0(mod_file_folder, 'S_A2_specifications.csv')) %>%
               mutate(Resp = 'Com')) %>%
-  bind_rows(read_csv('analysis/data/raw_data/S_A3_specifications.csv') %>%
+  bind_rows(read_csv(paste0(mod_file_folder, 'S_A3_specifications.csv')) %>%
               mutate(Resp = 'Net')) %>%
   select(EffectType, Resp, VarName, matches('^M')) %>%
-  gather(Model, Incl, -(EffectType:VarName)) %>%
+  pivot_longer(starts_with("M"),
+               names_to = "Model",
+               values_to = "Incl") %>%
   mutate(VarName = recode(VarName,
                           'AveDepth*AveDepth' = 'I(AveDepth^2)',
                           'LYabund*PeakQ' = 'LYabund:PeakQ',
                           'ExperienceCat' = 'Experience3')) %>%
   filter(!is.na(Incl)) %>%
   mutate(Survey = 'Air') %>%
-  bind_rows(read_csv('analysis/data/raw_data/S_G2_specifications.csv') %>%
+  bind_rows(read_csv(paste0(mod_file_folder, 'S_G2_specifications.csv')) %>%
               mutate(Resp = 'Omi') %>%
-              bind_rows(read_csv('analysis/data/raw_data/S_G3_specifications.csv') %>%
+              bind_rows(read_csv(paste0(mod_file_folder, 'S_G3_specifications.csv')) %>%
                           mutate(Resp = 'Com')) %>%
-              bind_rows(read_csv('analysis/data/raw_data/S_G4_specifications.csv') %>%
+              bind_rows(read_csv(paste0(mod_file_folder, 'S_G4_specifications.csv')) %>%
                           mutate(Resp = 'Net')) %>%
               select(EffectType, Resp, VarName, matches('^M')) %>%
-              gather(Model, Incl, -(EffectType:VarName)) %>%
+              pivot_longer(starts_with("M"),
+                           names_to = "Model",
+                           values_to = "Incl") %>%
               mutate(VarName = recode(VarName,
                                       'AveDepth*AveDepth' = 'I(AveDepth^2)',
                                       'LYabund*PeakQ' = 'LYabund:PeakQ',
@@ -80,13 +88,16 @@ all_mod_specs = read_csv('analysis/data/raw_data/S_A1_specifications.csv') %>%
               filter(!is.na(Incl)) %>%
               mutate(Survey = 'Ground')) %>%
   select(-EffectType) %>%
-  spread(VarName, Incl) %>%
+  pivot_wider(names_from = VarName,
+              values_from = Incl) %>%
   arrange(Survey, Resp, Model) %>%
   mutate(Year = 1) %>%
-  gather(VarName, Incl, -(Resp:Survey)) %>%
+  pivot_longer(-(Resp:Survey),
+               names_to = "VarName",
+               values_to = "Incl") %>%
   filter(!is.na(Incl)) %>%
   mutate(EffectType = ifelse(VarName %in% c('Reach', 'Year', 'Surveyor'), 'Random', 'Fixed')) %>%
-  mutate(Model = factor(Model, levels = paste0('M', 1:21))) %>%
+  mutate(Model = factor(Model, levels = paste0('M', 1:23))) %>%
   select(Survey, Resp, EffectType, Model, VarName, Incl) %>%
   arrange(Survey, Resp, EffectType, VarName, Model) %>%
   # can't have surveyor as random effect for air surveys, only one surveyor
@@ -347,8 +358,8 @@ set.seed(6)
 
 
 # how many cross validation folds (training datasets) shall we make?
-n_folds = 5
-set.seed(6)
+n_folds = 10
+set.seed(3)
 loocv_df = mod_data %>%
   group_by(Survey) %>%
   nest() %>%
@@ -428,4 +439,4 @@ save(raw_data,
      mod_sel,
      n_folds,
      loocv_df,
-     file = 'analysis/modelResults/fits_sightability.rda')
+     file = here('analysis/data/derived_data/fits_sightability.rda'))
